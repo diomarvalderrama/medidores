@@ -1,1 +1,1 @@
-web: python manage.py migrate --run-syncdb && gunicorn config.wsgi:application
+web: gunicorn config.wsgi:application

@@ -20,6 +20,7 @@ class Medidor(models.Model):
         ('MALO', 'Malo'),
         ('DETERIORADO', 'Deteriorado'),
         ('FUERA_SERVICIO', 'Fuera de servicio'),
+        ('USADO', 'Usado'),
     ]
 
     registro = models.ForeignKey(
