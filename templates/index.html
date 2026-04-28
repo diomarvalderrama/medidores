@@ -13,7 +13,7 @@
                     <th>Fecha</th>
                     <th>Inspector</th>
                     <th>Correo</th>
-                    <th style="width:200px;">Acciones</th>
+                    <th style="width:250px;">Acciones</th>
                 </tr>
             </thead>
 
@@ -24,17 +24,16 @@
                         <td>{{ r.nombre_inspector }}</td>
                         <td>{{ r.correo }}</td>
                         <td>
+                            <a href="{% url 'detalle_registro' r.id %}" class="btn btn-sm btn-primary">Ver</a>
+                            <a href="{% url 'editar_registro' r.id %}" class="btn btn-sm btn-warning">Editar</a>
 
-                            <!-- VER -->
-                            <a href="{% url 'detalle_registro' r.id %}" class="btn btn-sm btn-primary">
-                                Ver
-                            </a>
-
-                            <!-- EDITAR -->
-                            <a href="{% url 'editar_registro' r.id %}" class="btn btn-sm btn-warning">
-                                Editar
-                            </a>
-
+                            <button type="button" class="btn btn-sm btn-danger"
+                                onclick="if(confirm('¿Seguro que deseas eliminar este registro?')) { document.getElementById('del-{{ r.id }}').submit(); }">
+                                Eliminar
+                            </button>
+                            <form id="del-{{ r.id }}" method="post" action="{% url 'eliminar_registro' r.id %}">
+                                {% csrf_token %}
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

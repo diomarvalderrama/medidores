@@ -22,7 +22,6 @@ def index(request):
     return render(request, 'index.html', {'registros': registros})
 
 
-
 # 🔹 DETALLE
 @login_required
 def detalle_registro(request, pk):
@@ -38,7 +37,7 @@ def nuevo_registro(request):
         formset = MedidorFormSet(request.POST, request.FILES)
 
         if form.is_valid() and formset.is_valid():
-            registro = form.save()  # ✅ correcto
+            registro = form.save()
 
             medidores = formset.save(commit=False)
             for m in medidores:
@@ -53,7 +52,8 @@ def nuevo_registro(request):
 
     return render(request, 'nuevo.html', {'form': form, 'formset': formset})
 
-## 🔹 EDITAR
+
+# 🔹 EDITAR
 @login_required
 def editar_registro(request, pk):
     registro = get_object_or_404(RegistroInspeccion, pk=pk)
@@ -63,18 +63,14 @@ def editar_registro(request, pk):
         formset = MedidorFormSet(request.POST, request.FILES, instance=registro)
 
         if form.is_valid() and formset.is_valid():
-            
-            # 🔥 1. Guardar registro correctamente
             registro = form.save(commit=False)
             registro.save()
 
-            # 🔥 2. Guardar medidores sin dañar el registro
             medidores = formset.save(commit=False)
             for m in medidores:
                 m.registro = registro
                 m.save()
 
-            # 🔥 3. Eliminar si aplica
             for obj in formset.deleted_objects:
                 obj.delete()
 
@@ -88,6 +84,17 @@ def editar_registro(request, pk):
         'form': form,
         'formset': formset
     })
+
+
+# 🔹 ELIMINAR
+@login_required
+def eliminar_registro(request, pk):
+    registro = get_object_or_404(RegistroInspeccion, pk=pk)
+    if request.method == 'POST':
+        registro.delete()
+        return redirect('index')
+    return redirect('index')
+
 
 # 🔹 SELECCIONAR
 @login_required
@@ -170,11 +177,9 @@ def generar_informe(request):
 
     elementos = []
 
-    # 🔹 TÍTULO
     elementos.append(Paragraph("INFORME TECNICO DE EVALUACION POST-DESTAPE DE MEDIDORES", styles['Title']))
     elementos.append(Spacer(1, 12))
 
-    # 🔹 OBJETIVO
     texto_obj = f"""
     El presente informe tiene como propósito documentar los hallazgos observados tras el proceso
     de destape y revisión visual interna de {medidores.count()} medidores de agua, los cuales fueron sometidos a
@@ -184,7 +189,6 @@ def generar_informe(request):
     elementos.append(Paragraph(texto_obj, styles['Normal']))
     elementos.append(Spacer(1, 12))
 
-    # 🔹 TABLA
     data = [['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO']]
     for m in medidores:
         data.append([m.serial, m.modelo, m.anio, m.estado, m.codigo])
@@ -200,7 +204,6 @@ def generar_informe(request):
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    # 🔹 OBSERVACIONES + FOTOS 2x2
     elementos.append(Paragraph("<b>3. OBSERVACIONES DETALLADAS</b>", styles['Heading2']))
 
     for i, m in enumerate(medidores, 1):
@@ -234,7 +237,6 @@ def generar_informe(request):
 
         elementos.append(tabla_fotos)
 
-    # 🔹 CONCLUSIONES
     elementos.append(Spacer(1, 12))
     elementos.append(Paragraph("<b>4. CONCLUSIONES</b>", styles['Heading2']))
     elementos.append(Paragraph(
@@ -244,12 +246,10 @@ def generar_informe(request):
 
     elementos.append(Spacer(1, 20))
 
-    # 🔹 FIRMA
     elementos.append(Paragraph("PAULA JULIA BLANCO H", styles['Normal']))
     elementos.append(Paragraph("Líder CN Laboratorio de calibración de medidores", styles['Normal']))
     elementos.append(Paragraph(f"Fecha: {datetime.now().date()}", styles['Normal']))
 
-    # 🔹 ENCABEZADO + PIE
     def header_footer(canvas, doc):
         canvas.saveState()
         try:
