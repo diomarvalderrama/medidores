@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-4 shadow">
+
+    <h3 class="mb-4">Registros de Inspección</h3>
+
+    {% if registros %}
+        <table class="table table-bordered table-striped align-middle">
+            <thead style="background-color:#003366; color:white;">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Inspector</th>
+                    <th>Correo</th>
+                    <th style="width:200px;">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in registros %}
+                    <tr>
+                        <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ r.nombre_inspector }}</td>
+                        <td>{{ r.correo }}</td>
+                        <td>
+
+                            <!-- VER -->
+                            <a href="{% url 'detalle_registro' r.id %}" class="btn btn-sm btn-primary">
+                                Ver
+                            </a>
+
+                            <!-- EDITAR -->
+                            <a href="{% url 'editar_registro' r.id %}" class="btn btn-sm btn-warning">
+                                Editar
+                            </a>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">
+            No hay registros aún.
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

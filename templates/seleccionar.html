@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card p-4 shadow">
+
+    <h3 class="mb-4">Seleccionar medidores para informe</h3>
+
+    <!-- 🔹 FILTRO POR FECHA -->
+    <form method="get" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Filtrar por fecha</label>
+                <input type="date" name="fecha" class="form-control" value="{{ fecha }}">
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">
+                    Filtrar
+                </button>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="/seleccionar/" class="btn btn-secondary">
+                    Limpiar
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- 🔹 FORMULARIO PDF -->
+    <form method="post" action="/generar/">
+        {% csrf_token %}
+
+        <table class="table table-bordered">
+            <thead style="background:#003366; color:white;">
+                <tr>
+                    <th>
+                        <!-- ✔ SELECT ALL -->
+                        <input type="checkbox" onclick="seleccionarTodos(this)">
+                    </th>
+                    <th>Serial</th>
+                    <th>Modelo</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for m in medidores %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="medidores" value="{{ m.id }}">
+                    </td>
+                    <td>{{ m.serial }}</td>
+                    <td>{{ m.modelo }}</td>
+                    <td>{{ m.registro.fecha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button class="btn btn-success">Generar informe PDF</button>
+
+    </form>
+
+</div>
+
+<!-- 🔹 SCRIPT SELECT ALL -->
+<script>
+function seleccionarTodos(source) {
+    const checkboxes = document.querySelectorAll('input[name="medidores"]');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+</script>
+
+{% endblock %}
