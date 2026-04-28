@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 
@@ -13,6 +14,14 @@ from reportlab.pdfgen import canvas
 from django.contrib.auth.decorators import login_required
 
 from datetime import datetime
+
+# 🔹 Fuente según sistema operativo
+VERDANA_PATH = r'C:\Windows\Fonts\verdana.ttf'
+if os.path.exists(VERDANA_PATH):
+    pdfmetrics.registerFont(TTFont('Verdana', VERDANA_PATH))
+    FONT = 'Verdana'
+else:
+    FONT = 'Helvetica'
 
 
 # 🔹 LISTA
@@ -133,7 +142,7 @@ class NumberedCanvas(canvas.Canvas):
         super().save()
 
     def draw_footer(self, total):
-        self.setFont("Verdana", 8)
+        self.setFont(FONT, 8)
         self.drawCentredString(
             300,
             20,
@@ -146,8 +155,6 @@ class NumberedCanvas(canvas.Canvas):
 def generar_informe(request):
     ids = request.POST.getlist('medidores')
     medidores = Medidor.objects.filter(id__in=ids) if ids else Medidor.objects.none()
-
-    pdfmetrics.registerFont(TTFont('Verdana', r'C:\Windows\Fonts\verdana.ttf'))
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="informe.pdf"'
@@ -162,17 +169,17 @@ def generar_informe(request):
 
     styles = getSampleStyleSheet()
 
-    styles['Normal'].fontName = 'Verdana'
+    styles['Normal'].fontName = FONT
     styles['Normal'].fontSize = 9
     styles['Normal'].alignment = 4
 
-    styles['Title'].fontName = 'Verdana'
+    styles['Title'].fontName = FONT
     styles['Title'].fontSize = 10
 
-    styles['Heading2'].fontName = 'Verdana'
+    styles['Heading2'].fontName = FONT
     styles['Heading2'].fontSize = 10
 
-    styles['Heading3'].fontName = 'Verdana'
+    styles['Heading3'].fontName = FONT
     styles['Heading3'].fontSize = 9
 
     elementos = []
@@ -253,11 +260,13 @@ def generar_informe(request):
     def header_footer(canvas, doc):
         canvas.saveState()
         try:
-            canvas.drawImage(r"E:\medidores\laboratorio_medidores\media\logo.png", 40, 750, width=520, height=70)
+            logo = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'logo.png')
+            canvas.drawImage(logo, 40, 750, width=520, height=70)
         except:
             pass
         try:
-            canvas.drawImage(r"E:\medidores\laboratorio_medidores\media\pie.png", 40, 30, width=520, height=60)
+            pie = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'pie.png')
+            canvas.drawImage(pie, 40, 30, width=520, height=60)
         except:
             pass
         canvas.restoreState()
