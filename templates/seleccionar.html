@@ -13,17 +13,11 @@
                 <label>Filtrar por fecha</label>
                 <input type="date" name="fecha" class="form-control" value="{{ fecha }}">
             </div>
-
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">
-                    Filtrar
-                </button>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
             </div>
-
             <div class="col-md-2 d-flex align-items-end">
-                <a href="/seleccionar/" class="btn btn-secondary">
-                    Limpiar
-                </a>
+                <a href="/seleccionar/" class="btn btn-secondary">Limpiar</a>
             </div>
         </div>
     </form>
@@ -35,25 +29,24 @@
         <table class="table table-bordered">
             <thead style="background:#003366; color:white;">
                 <tr>
-                    <th>
-                        <!-- ✔ SELECT ALL -->
-                        <input type="checkbox" onclick="seleccionarTodos(this)">
-                    </th>
+                    <th>#</th>
+                    <th><input type="checkbox" onclick="seleccionarTodos(this)"></th>
                     <th>Serial</th>
                     <th>Modelo</th>
-                    <th>Fecha</th>
+                    <th>Fecha de realización del informe</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for m in medidores %}
                 <tr>
+                    <td>{{ forloop.counter }}</td>
                     <td>
                         <input type="checkbox" name="medidores" value="{{ m.id }}">
                     </td>
                     <td>{{ m.serial }}</td>
                     <td>{{ m.modelo }}</td>
-                    <td>{{ m.registro.fecha }}</td>
+                    <td>{{ m.registro.fecha_informe|date:"Y-m-d" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -65,7 +58,6 @@
 
 </div>
 
-<!-- 🔹 SCRIPT SELECT ALL -->
 <script>
 function seleccionarTodos(source) {
     const checkboxes = document.querySelectorAll('input[name="medidores"]');

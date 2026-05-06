@@ -45,6 +45,7 @@ def detalle_registro(request, pk):
 
 
 # 🔹 CREAR
+# 🔹 CREAR
 @login_required
 def nuevo_registro(request):
     if request.method == 'POST':
@@ -56,6 +57,8 @@ def nuevo_registro(request):
             for m in medidores:
                 m.registro = registro
                 m.save()
+            from django.contrib import messages
+            messages.success(request, '✅ Registro guardado correctamente.')
             return redirect('index')
         else:
             print("FORM ERRORS:", form.errors)

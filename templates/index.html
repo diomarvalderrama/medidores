@@ -28,7 +28,8 @@
         <table class="table table-bordered table-striped align-middle">
             <thead style="background-color:#003366; color:white;">
                 <tr>
-                    <th>Fecha Informe</th>
+                    <th>#</th>
+                    <th>Fecha de realización del informe</th>
                     <th>Fecha Despiece</th>
                     <th style="width:280px;">Acciones</th>
                 </tr>
@@ -37,8 +38,9 @@
             <tbody>
                 {% for r in registros %}
                     <tr>
-                        <td>{{ r.fecha_informe|date:"d/m/Y" }}</td>
-                        <td>{{ r.fecha_despiece|date:"d/m/Y" }}</td>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ r.fecha_informe|date:"Y-m-d" }}</td>
+                        <td>{{ r.fecha_despiece|date:"Y-m-d" }}</td>
                         <td>
                             <a href="{% url 'detalle_registro' r.id %}" class="btn btn-sm btn-primary">Ver</a>
                             <a href="{% url 'editar_registro' r.id %}" class="btn btn-sm btn-warning">Editar</a>
