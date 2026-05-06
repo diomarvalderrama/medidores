@@ -56,6 +56,10 @@ def nuevo_registro(request):
                 m.registro = registro
                 m.save()
             return redirect('index')
+        else:
+            print("FORM ERRORS:", form.errors)
+            print("FORMSET ERRORS:", formset.errors)
+            print("FORMSET NON FORM ERRORS:", formset.non_form_errors())
     else:
         form = RegistroForm()
         formset = MedidorFormSet()

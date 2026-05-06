@@ -21,6 +21,12 @@
                 {{ formset.errors }}
             </div>
         {% endif %}
+        {% if formset.non_form_errors %}
+            <div class="alert alert-danger">
+                <b>Error general:</b>
+                {{ formset.non_form_errors }}
+            </div>
+        {% endif %}
 
         <!-- 🔹 FECHAS -->
         <div class="row mb-3">
