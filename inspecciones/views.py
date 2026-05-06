@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 
 from datetime import datetime
 
+
 # 🔹 Fuente según sistema operativo
 VERDANA_PATH = r'C:\Windows\Fonts\verdana.ttf'
 if os.path.exists(VERDANA_PATH):
@@ -105,7 +106,7 @@ def eliminar_registro(request, pk):
     return redirect('index')
 
 
-# 🔹 SELECCIONAR
+# 🔹 SELECCIONAR MEDIDORES
 @login_required
 def seleccionar_medidores(request):
     fecha = request.GET.get('fecha')
@@ -150,11 +151,14 @@ class NumberedCanvas(canvas.Canvas):
         )
 
 
-# 🔹 GENERAR INFORME
+# 🔹 GENERAR INFORME PDF
 @login_required
 def generar_informe(request):
     ids = request.POST.getlist('medidores')
     medidores = Medidor.objects.filter(id__in=ids) if ids else Medidor.objects.none()
+
+    fecha_informe = request.POST.get('fecha_informe')
+    fecha_despiece = request.POST.get('fecha_despiece')
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="informe.pdf"'
@@ -184,21 +188,27 @@ def generar_informe(request):
 
     elementos = []
 
-    elementos.append(Paragraph("INFORME TECNICO DE EVALUACION POST-DESTAPE DE MEDIDORES", styles['Title']))
+    # 🔹 TÍTULO
+    elementos.append(Paragraph("INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES", styles['Title']))
+    elementos.append(Spacer(1, 10))
+
+    # 🔹 FECHAS
+    elementos.append(Paragraph(f"<b>Fecha del informe:</b> {fecha_informe}", styles['Normal']))
+    elementos.append(Paragraph(f"<b>Fecha del despiece:</b> {fecha_despiece}", styles['Normal']))
     elementos.append(Spacer(1, 12))
 
-    texto_obj = f"""
-    El presente informe tiene como propósito documentar los hallazgos observados tras el proceso
-    de destape y revisión visual interna de {medidores.count()} medidores de agua, los cuales fueron sometidos a
-    evaluación técnica en el laboratorio de calibración.
-    """
-    elementos.append(Paragraph("<b>1. OBJETIVO</b>", styles['Heading2']))
-    elementos.append(Paragraph(texto_obj, styles['Normal']))
-    elementos.append(Spacer(1, 12))
+    # 🔹 TABLA MEDIDORES
+    data = [['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'ALTERACIÓN']]
 
-    data = [['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO']]
     for m in medidores:
-        data.append([m.serial, m.modelo, m.anio, m.estado, m.codigo])
+        data.append([
+            m.serial,
+            m.modelo,
+            m.anio,
+            m.estado,
+            m.codigo,
+            m.medidor_con_alteracion
+        ])
 
     tabla = Table(data)
     tabla.setStyle([
@@ -207,18 +217,19 @@ def generar_informe(request):
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
     ])
 
-    elementos.append(Paragraph("<b>2. MEDIDORES INSPECCIONADOS</b>", styles['Heading2']))
+    elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    elementos.append(Paragraph("<b>3. OBSERVACIONES DETALLADAS</b>", styles['Heading2']))
+    # 🔹 OBSERVACIONES
+    elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
 
     for i, m in enumerate(medidores, 1):
-        elementos.append(Spacer(1, 10))
-        elementos.append(Paragraph(f"<b>3.{i} Medidor {m.serial}</b>", styles['Heading3']))
+        elementos.append(Spacer(1, 8))
+        elementos.append(Paragraph(f"<b>Medidor {m.serial}</b>", styles['Heading3']))
 
-        if m.observaciones:
-            elementos.append(Paragraph(m.observaciones, styles['Normal']))
+        if m.observaciones_encontradas:
+            elementos.append(Paragraph(m.observaciones_encontradas, styles['Normal']))
 
         elementos.append(Spacer(1, 6))
 
@@ -237,26 +248,21 @@ def generar_informe(request):
             [fotos[2], fotos[3]],
         ], colWidths=[250, 250])
 
-        tabla_fotos.setStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ])
-
         elementos.append(tabla_fotos)
-
-    elementos.append(Spacer(1, 12))
-    elementos.append(Paragraph("<b>4. CONCLUSIONES</b>", styles['Heading2']))
-    elementos.append(Paragraph(
-        "Los medidores presentan anomalías en sus componentes internos y requieren evaluación técnica.",
-        styles['Normal']
-    ))
 
     elementos.append(Spacer(1, 20))
 
-    elementos.append(Paragraph("PAULA JULIA BLANCO H", styles['Normal']))
-    elementos.append(Paragraph("Líder CN Laboratorio de calibración de medidores", styles['Normal']))
-    elementos.append(Paragraph(f"Fecha: {datetime.now().date()}", styles['Normal']))
+    # 🔹 FIRMA
+    try:
+        firma = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'firma.png')
+        elementos.append(Image(firma, width=150, height=50))
+    except:
+        pass
 
+    elementos.append(Paragraph("PAULA JULIA BLANCO H", styles['Normal']))
+    elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", styles['Normal']))
+
+    # 🔹 HEADER Y FOOTER
     def header_footer(canvas, doc):
         canvas.saveState()
         try:
@@ -271,6 +277,11 @@ def generar_informe(request):
             pass
         canvas.restoreState()
 
-    doc.build(elementos, onFirstPage=header_footer, onLaterPages=header_footer, canvasmaker=NumberedCanvas)
+    doc.build(
+        elementos,
+        onFirstPage=header_footer,
+        onLaterPages=header_footer,
+        canvasmaker=NumberedCanvas
+    )
 
     return response

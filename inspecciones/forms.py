@@ -21,12 +21,33 @@ class MedidorForm(forms.ModelForm):
     class Meta:
         model = Medidor
         exclude = ('registro',)
+        labels = {
+            'medidor_con_alteracion': 'Medidor con alteración',
+            'observaciones_encontradas': 'Observaciones encontradas',
+        }
+        widgets = {
+            # 🔹 CAMPOS EDITABLES (INPUT)
+            'serial': forms.TextInput(attrs={'class': 'form-control'}),
+            'modelo': forms.TextInput(attrs={'class': 'form-control'}),
+            'anio': forms.NumberInput(attrs={'class': 'form-control'}),
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+
+            # 🔹 SELECTS (correctos)
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'medidor_con_alteracion': forms.Select(attrs={'class': 'form-control'}),
+
+            # 🔹 TEXTO
+            'observaciones_encontradas': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3
+            }),
+        }
 
 
 MedidorFormSet = inlineformset_factory(
     RegistroInspeccion,
     Medidor,
-    fields='__all__',
+    form=MedidorForm,
     extra=1,
     max_num=1,
     validate_max=True

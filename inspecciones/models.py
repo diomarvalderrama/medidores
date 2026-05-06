@@ -3,10 +3,6 @@ from django.db import models
 
 class RegistroInspeccion(models.Model):
     fecha = models.DateField()
-    hora_inicio = models.TimeField()
-    hora_finalizacion = models.TimeField()
-    correo = models.EmailField()
-    nombre_inspector = models.CharField(max_length=150)
     conclusiones_generales = models.TextField()
 
     def __str__(self):
@@ -23,6 +19,11 @@ class Medidor(models.Model):
         ('USADO', 'Usado'),
     ]
 
+    ALTERACION_CHOICES = [
+        ('SI', 'Sí'),
+        ('NO', 'No'),
+    ]
+
     registro = models.ForeignKey(
         RegistroInspeccion,
         on_delete=models.CASCADE,
@@ -34,7 +35,14 @@ class Medidor(models.Model):
     anio = models.IntegerField()
     estado = models.CharField(max_length=20, choices=ESTADOS)
     codigo = models.CharField(max_length=100)
-    observaciones = models.TextField()
+
+    medidor_con_alteracion = models.CharField(
+        max_length=2,
+        choices=ALTERACION_CHOICES,
+        default='NO'
+    )
+
+    observaciones_encontradas = models.TextField()
 
     foto_1 = models.ImageField(upload_to='medidores/', blank=True, null=True)
     foto_2 = models.ImageField(upload_to='medidores/', blank=True, null=True)
@@ -46,7 +54,9 @@ class Medidor(models.Model):
 
 
 class InformeTecnico(models.Model):
-    fecha_informe = models.DateField(auto_now_add=True)
+    fecha_informe = models.DateField()
+    fecha_despiece = models.DateField()
+
     medidores = models.ManyToManyField(Medidor)
     generado_en = models.DateTimeField(auto_now_add=True)
 

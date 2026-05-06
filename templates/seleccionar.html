@@ -32,6 +32,19 @@
     <form method="post" action="/generar/">
         {% csrf_token %}
 
+        <!-- 🔥 NUEVO: FECHAS DEL INFORME -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label><b>Fecha de realización del informe</b></label>
+                <input type="date" name="fecha_informe" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+                <label><b>Fecha de realización del despiece</b></label>
+                <input type="date" name="fecha_despiece" class="form-control" required>
+            </div>
+        </div>
+
         <table class="table table-bordered">
             <thead style="background:#003366; color:white;">
                 <tr>
