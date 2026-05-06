@@ -2,11 +2,12 @@ from django.db import models
 
 
 class RegistroInspeccion(models.Model):
-    fecha = models.DateField()
+    fecha_informe = models.DateField(null=True, blank=True)
+    fecha_despiece = models.DateField(null=True, blank=True)
     conclusiones_generales = models.TextField()
 
     def __str__(self):
-        return f"Registro {self.id} - {self.fecha}"
+        return f"Registro {self.id} - {self.fecha_informe}"
 
 
 class Medidor(models.Model):
@@ -56,7 +57,6 @@ class Medidor(models.Model):
 class InformeTecnico(models.Model):
     fecha_informe = models.DateField()
     fecha_despiece = models.DateField()
-
     medidores = models.ManyToManyField(Medidor)
     generado_en = models.DateTimeField(auto_now_add=True)
 
