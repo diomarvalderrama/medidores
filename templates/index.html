@@ -6,27 +6,42 @@
 
     <h3 class="mb-4">Registros de Inspección</h3>
 
+    <!-- 🔹 FILTRO POR FECHA -->
+    <form method="get" class="row mb-3">
+        <div class="col-md-3">
+            <input type="date" name="fecha" class="form-control" value="{{ fecha_filtro }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="{% url 'index' %}" class="btn btn-secondary">Limpiar</a>
+        </div>
+        {% if registros %}
+        <div class="col-md-3">
+            <a href="{% url 'exportar_excel' %}{% if fecha_filtro %}?fecha={{ fecha_filtro }}{% endif %}" class="btn btn-success">
+                📥 Exportar Excel
+            </a>
+        </div>
+        {% endif %}
+    </form>
+
     {% if registros %}
         <table class="table table-bordered table-striped align-middle">
             <thead style="background-color:#003366; color:white;">
                 <tr>
-                    <th>Fecha</th>
-                    <th>Inspector</th>
-                    <th>Correo</th>
-                    <th style="width:250px;">Acciones</th>
+                    <th>Fecha Informe</th>
+                    <th>Fecha Despiece</th>
+                    <th style="width:280px;">Acciones</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for r in registros %}
                     <tr>
-                        <td>{{ r.fecha|date:"d/m/Y" }}</td>
-                        <td>{{ r.nombre_inspector }}</td>
-                        <td>{{ r.correo }}</td>
+                        <td>{{ r.fecha_informe|date:"d/m/Y" }}</td>
+                        <td>{{ r.fecha_despiece|date:"d/m/Y" }}</td>
                         <td>
                             <a href="{% url 'detalle_registro' r.id %}" class="btn btn-sm btn-primary">Ver</a>
                             <a href="{% url 'editar_registro' r.id %}" class="btn btn-sm btn-warning">Editar</a>
-
                             <button type="button" class="btn btn-sm btn-danger"
                                 onclick="if(confirm('¿Seguro que deseas eliminar este registro?')) { document.getElementById('del-{{ r.id }}').submit(); }">
                                 Eliminar
