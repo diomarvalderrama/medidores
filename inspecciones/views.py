@@ -2,7 +2,7 @@ import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
+from django.conf import settings
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
@@ -178,8 +178,15 @@ class NumberedCanvas(canvas.Canvas):
 def generar_informe(request):
     ids = request.POST.getlist('medidores')
     medidores = Medidor.objects.filter(id__in=ids) if ids else Medidor.objects.none()
-    fecha_informe = request.POST.get('fecha_informe', '')
-    fecha_despiece = request.POST.get('fecha_despiece', '')
+
+    fecha_informe = ''
+    fecha_despiece = ''
+    if medidores.exists():
+        registro = medidores.first().registro
+        if registro.fecha_informe:
+            fecha_informe = registro.fecha_informe.strftime('%d/%m/%Y')
+        if registro.fecha_despiece:
+            fecha_despiece = registro.fecha_despiece.strftime('%d/%m/%Y')
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="informe.pdf"'
@@ -187,7 +194,6 @@ def generar_informe(request):
     doc = SimpleDocTemplate(response, rightMargin=40, leftMargin=40, topMargin=120, bottomMargin=100)
     styles = getSampleStyleSheet()
 
-    # 🔹 Estilos
     styles['Normal'].fontName = FONT
     styles['Normal'].fontSize = 9
     styles['Normal'].alignment = 4
@@ -196,7 +202,6 @@ def generar_informe(request):
         'TituloInforme',
         fontName=FONT,
         fontSize=11,
-        bold=True,
         alignment=TA_CENTER,
         spaceAfter=10,
     )
@@ -217,15 +222,12 @@ def generar_informe(request):
 
     # 🔹 TABLA MEDIDORES
     elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
-
     header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'MEDIDOR CON ALTERACIÓN']
     data = [header]
     for m in medidores:
         data.append([m.serial, m.modelo, str(m.anio), m.estado, m.codigo, m.medidor_con_alteracion])
 
     tabla = Table(data, colWidths=[80, 80, 40, 70, 70, 100])
-
-    # Estilo base de la tabla
     tabla_style = [
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8FA9C4")),
         ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
@@ -235,7 +237,6 @@ def generar_informe(request):
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#F0F0F0")]),
     ]
 
-    # 🔹 Fondo rojo en celdas con SI en columna ALTERACIÓN
     for i, m in enumerate(medidores, 1):
         if m.medidor_con_alteracion == 'SI':
             tabla_style.append(('BACKGROUND', (5, i), (5, i), colors.red))
@@ -251,7 +252,7 @@ def generar_informe(request):
     elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
     for i, m in enumerate(medidores, 1):
         elementos.append(Spacer(1, 8))
-        elementos.append(Paragraph(f"<b>Observación encontrada — Medidor {m.serial}</b>", styles['Heading3']))
+        elementos.append(Paragraph("<b>Observación encontrada</b>", styles['Heading3']))
         if m.observaciones_encontradas:
             elementos.append(Paragraph(m.observaciones_encontradas, styles['Normal']))
         elementos.append(Spacer(1, 6))
@@ -276,23 +277,22 @@ def generar_informe(request):
     elementos.append(Spacer(1, 20))
 
     # 🔹 FIRMA
-    firma_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'firma.png')
+    firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
     if os.path.exists(firma_path):
         elementos.append(Image(firma_path, width=150, height=50))
 
     elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", styles['Normal']))
     elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", styles['Normal']))
 
-    # 🔹 HEADER Y FOOTER
     def header_footer(canvas, doc):
         canvas.saveState()
         try:
-            logo = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'logo.png')
+            logo = os.path.join(settings.MEDIA_ROOT, 'logo.png')
             canvas.drawImage(logo, 40, 750, width=520, height=70)
         except:
             pass
         try:
-            pie = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'pie.png')
+            pie = os.path.join(settings.MEDIA_ROOT, 'pie.png')
             canvas.drawImage(pie, 40, 30, width=520, height=60)
         except:
             pass
