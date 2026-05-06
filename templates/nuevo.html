@@ -9,6 +9,19 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <b>Errores en el formulario:</b>
+                {{ form.errors }}
+            </div>
+        {% endif %}
+        {% if formset.errors %}
+            <div class="alert alert-danger">
+                <b>Errores en el medidor:</b>
+                {{ formset.errors }}
+            </div>
+        {% endif %}
+
         <!-- 🔹 FECHAS -->
         <div class="row mb-3">
             <div class="col-md-4">
