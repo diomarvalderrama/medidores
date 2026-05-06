@@ -11,7 +11,8 @@ from .forms import RegistroForm, MedidorFormSet
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Image
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -185,43 +186,76 @@ def generar_informe(request):
 
     doc = SimpleDocTemplate(response, rightMargin=40, leftMargin=40, topMargin=120, bottomMargin=100)
     styles = getSampleStyleSheet()
+
+    # 🔹 Estilos
     styles['Normal'].fontName = FONT
     styles['Normal'].fontSize = 9
     styles['Normal'].alignment = 4
-    styles['Title'].fontName = FONT
-    styles['Title'].fontSize = 10
+
+    titulo_style = ParagraphStyle(
+        'TituloInforme',
+        fontName=FONT,
+        fontSize=11,
+        bold=True,
+        alignment=TA_CENTER,
+        spaceAfter=10,
+    )
+
     styles['Heading2'].fontName = FONT
     styles['Heading2'].fontSize = 10
     styles['Heading3'].fontName = FONT
     styles['Heading3'].fontSize = 9
 
     elementos = []
-    elementos.append(Paragraph("INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES", styles['Title']))
+
+    # 🔹 TÍTULO EN NEGRILLA
+    elementos.append(Paragraph("<b>INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES</b>", titulo_style))
     elementos.append(Spacer(1, 10))
     elementos.append(Paragraph(f"<b>Fecha del informe:</b> {fecha_informe}", styles['Normal']))
     elementos.append(Paragraph(f"<b>Fecha del despiece:</b> {fecha_despiece}", styles['Normal']))
     elementos.append(Spacer(1, 12))
 
+    # 🔹 TABLA MEDIDORES
     elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
-    data = [['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'ALTERACIÓN']]
+
+    header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'MEDIDOR CON ALTERACIÓN']
+    data = [header]
     for m in medidores:
-        data.append([m.serial, m.modelo, m.anio, m.estado, m.codigo, m.medidor_con_alteracion])
-    tabla = Table(data)
-    tabla.setStyle([
+        data.append([m.serial, m.modelo, str(m.anio), m.estado, m.codigo, m.medidor_con_alteracion])
+
+    tabla = Table(data, colWidths=[80, 80, 40, 70, 70, 100])
+
+    # Estilo base de la tabla
+    tabla_style = [
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8FA9C4")),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ])
+        ('FONTNAME', (0, 0), (-1, 0), FONT),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#F0F0F0")]),
+    ]
+
+    # 🔹 Fondo rojo en celdas con SI en columna ALTERACIÓN
+    for i, m in enumerate(medidores, 1):
+        if m.medidor_con_alteracion == 'SI':
+            tabla_style.append(('BACKGROUND', (5, i), (5, i), colors.red))
+            tabla_style.append(('TEXTCOLOR', (5, i), (5, i), colors.white))
+            tabla_style.append(('BACKGROUND', (0, 0), (5, 0), colors.red))
+            tabla_style.append(('TEXTCOLOR', (0, 0), (5, 0), colors.white))
+
+    tabla.setStyle(tabla_style)
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
+    # 🔹 OBSERVACIONES
     elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
     for i, m in enumerate(medidores, 1):
         elementos.append(Spacer(1, 8))
-        elementos.append(Paragraph(f"<b>Medidor {m.serial}</b>", styles['Heading3']))
+        elementos.append(Paragraph(f"<b>Observación encontrada — Medidor {m.serial}</b>", styles['Heading3']))
         if m.observaciones_encontradas:
             elementos.append(Paragraph(m.observaciones_encontradas, styles['Normal']))
         elementos.append(Spacer(1, 6))
+
         fotos = []
         for foto in [m.foto_1, m.foto_2, m.foto_3, m.foto_4]:
             if foto:
@@ -231,6 +265,7 @@ def generar_informe(request):
                     fotos.append("")
             else:
                 fotos.append("")
+
         tabla_fotos = Table([[fotos[0], fotos[1]], [fotos[2], fotos[3]]], colWidths=[250, 250])
         tabla_fotos.setStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -239,9 +274,16 @@ def generar_informe(request):
         elementos.append(tabla_fotos)
 
     elementos.append(Spacer(1, 20))
-    elementos.append(Paragraph("PAULA JULIA BLANCO H", styles['Normal']))
+
+    # 🔹 FIRMA
+    firma_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'media', 'firma.png')
+    if os.path.exists(firma_path):
+        elementos.append(Image(firma_path, width=150, height=50))
+
+    elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", styles['Normal']))
     elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", styles['Normal']))
 
+    # 🔹 HEADER Y FOOTER
     def header_footer(canvas, doc):
         canvas.saveState()
         try:
