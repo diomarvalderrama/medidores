@@ -29,12 +29,12 @@
         {% endif %}
 
         <!-- 🔹 FECHAS -->
-        <div class="row mb-3">
-            <div class="col-md-4">
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-4">
                 <label>Fecha de realización del informe</label>
                 {{ form.fecha_informe }}
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label>Fecha de realización del despiece</label>
                 {{ form.fecha_despiece }}
             </div>
@@ -51,28 +51,28 @@
             {% for f in formset %}
                 <div class="card p-3 mb-3 border">
 
-                    <div class="row">
-                        <div class="col-md-2">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-2">
                             <label>Serial</label>
                             {{ f.serial }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-12 col-md-2">
                             <label>Modelo</label>
                             {{ f.modelo }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label>Año</label>
                             {{ f.anio }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label>Estado</label>
                             {{ f.estado }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label>Código</label>
                             {{ f.codigo }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
                             <label>Medidor con alteración</label>
                             {{ f.medidor_con_alteracion }}
                         </div>
@@ -90,20 +90,20 @@
 
                     <!-- 🔹 SECCIÓN 3: FOTOS -->
                     <h5 class="text-primary">3. Fotografías</h5>
-                    <div class="row mt-2">
-                        <div class="col-md-3">
+                    <div class="row g-2 mt-1">
+                        <div class="col-12 col-md-3">
                             <label>Foto 1</label>
                             {{ f.foto_1 }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label>Foto 2</label>
                             {{ f.foto_2 }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label>Foto 3</label>
                             {{ f.foto_3 }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label>Foto 4</label>
                             {{ f.foto_4 }}
                         </div>
@@ -115,7 +115,7 @@
 
         <hr>
 
-        <button type="submit" class="btn btn-success">
+        <button type="submit" class="btn btn-success w-100">
             Guardar registro
         </button>
 

@@ -228,7 +228,7 @@ def generar_informe(request):
     for m in medidores:
         data.append([m.serial, m.modelo, str(m.anio), m.estado, m.codigo, m.medidor_con_alteracion])
 
-    tabla = Table(data, colWidths=[80, 80, 40, 70, 70, 100])
+    tabla = Table(data, colWidths=[75, 75, 35, 65, 65, 130])
     tabla_style = [
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8E8E8")),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),

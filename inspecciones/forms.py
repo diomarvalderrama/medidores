@@ -46,6 +46,6 @@ MedidorFormSet = inlineformset_factory(
     form=MedidorForm,
     extra=0,
     max_num=1,
-    validate_max=True,
+    validate_max=False,
     can_delete=False
 )
