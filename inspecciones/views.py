@@ -184,9 +184,9 @@ def generar_informe(request):
     if medidores.exists():
         registro = medidores.first().registro
         if registro.fecha_informe:
-            fecha_informe = registro.fecha_informe.strftime('%d/%m/%Y')
+            fecha_informe = registro.fecha_informe.strftime('%Y-%m-%d')
         if registro.fecha_despiece:
-            fecha_despiece = registro.fecha_despiece.strftime('%d/%m/%Y')
+            fecha_despiece = registro.fecha_despiece.strftime('%Y-%m-%d')
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="informe.pdf"'
@@ -213,14 +213,12 @@ def generar_informe(request):
 
     elementos = []
 
-    # 🔹 TÍTULO EN NEGRILLA
     elementos.append(Paragraph("<b>INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES</b>", titulo_style))
     elementos.append(Spacer(1, 10))
     elementos.append(Paragraph(f"<b>Fecha del informe:</b> {fecha_informe}", styles['Normal']))
     elementos.append(Paragraph(f"<b>Fecha del despiece:</b> {fecha_despiece}", styles['Normal']))
     elementos.append(Spacer(1, 12))
 
-    # 🔹 TABLA MEDIDORES
     elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
     header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'MEDIDOR CON ALTERACIÓN']
     data = [header]
@@ -229,26 +227,26 @@ def generar_informe(request):
 
     tabla = Table(data, colWidths=[80, 80, 40, 70, 70, 100])
     tabla_style = [
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#8FA9C4")),
-        ('GRID', (0, 0), (-1, -1), 0.3, colors.grey),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#E8E8E8")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
         ('FONTNAME', (0, 0), (-1, 0), FONT),
         ('FONTSIZE', (0, 0), (-1, -1), 8),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#F0F0F0")]),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.3, colors.HexColor("#CCCCCC")),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor("#C8DDE5"), colors.white]),
+        ('BACKGROUND', (5, 0), (5, 0), colors.HexColor("#E3CFCF")),
+        ('BACKGROUND', (5, 1), (5, -1), colors.HexColor("#E3CFCF")),
     ]
 
     for i, m in enumerate(medidores, 1):
         if m.medidor_con_alteracion == 'SI':
             tabla_style.append(('BACKGROUND', (5, i), (5, i), colors.red))
             tabla_style.append(('TEXTCOLOR', (5, i), (5, i), colors.white))
-            tabla_style.append(('BACKGROUND', (0, 0), (5, 0), colors.red))
-            tabla_style.append(('TEXTCOLOR', (0, 0), (5, 0), colors.white))
 
     tabla.setStyle(tabla_style)
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    # 🔹 OBSERVACIONES
     elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
     for i, m in enumerate(medidores, 1):
         elementos.append(Spacer(1, 8))
@@ -276,10 +274,17 @@ def generar_informe(request):
 
     elementos.append(Spacer(1, 20))
 
-    # 🔹 FIRMA
     firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
     if os.path.exists(firma_path):
-        elementos.append(Image(firma_path, width=150, height=50))
+        firma_tabla_data = [[Image(firma_path, width=120, height=40), '']]
+    else:
+        firma_tabla_data = [['', '']]
+
+    firma_tabla = Table(firma_tabla_data, colWidths=[200, 300])
+    firma_tabla.setStyle([
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+    ])
+    elementos.append(firma_tabla)
 
     elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", styles['Normal']))
     elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", styles['Normal']))
