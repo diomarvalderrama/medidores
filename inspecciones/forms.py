@@ -44,7 +44,7 @@ MedidorFormSet = inlineformset_factory(
     RegistroInspeccion,
     Medidor,
     form=MedidorForm,
-    extra=0,
+    extra=1,
     max_num=1,
     validate_max=False,
     can_delete=False
