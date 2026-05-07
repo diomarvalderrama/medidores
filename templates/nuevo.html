@@ -42,7 +42,6 @@
 
         <hr>
 
-        <!-- 🔹 SECCIÓN 1: INFORMACIÓN DEL MEDIDOR -->
         <h5 class="text-primary">1. Información del Medidor</h5>
 
         {{ formset.management_form }}
@@ -80,7 +79,6 @@
 
                     <hr>
 
-                    <!-- 🔹 SECCIÓN 2: OBSERVACIONES DEL DESPIECE -->
                     <h5 class="text-primary">2. Observación del Despiece</h5>
                     <div class="mt-2">
                         {{ f.observaciones_encontradas }}
@@ -88,33 +86,53 @@
 
                     <hr>
 
-                    <!-- 🔹 SECCIÓN 3: FOTOS -->
                     <h5 class="text-primary">3. Fotografías</h5>
                     <div class="row g-2 mt-1">
+
                         <div class="col-6 col-md-3">
                             <label>Foto 1</label>
                             {{ f.foto_1 }}
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
-                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% if f.instance.foto_1 %}
+                                <img src="{{ f.instance.foto_1.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% else %}
+                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% endif %}
                         </div>
+
                         <div class="col-6 col-md-3">
                             <label>Foto 2</label>
                             {{ f.foto_2 }}
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
-                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% if f.instance.foto_2 %}
+                                <img src="{{ f.instance.foto_2.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% else %}
+                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% endif %}
                         </div>
+
                         <div class="col-6 col-md-3">
                             <label>Foto 3</label>
                             {{ f.foto_3 }}
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
-                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% if f.instance.foto_3 %}
+                                <img src="{{ f.instance.foto_3.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% else %}
+                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% endif %}
                         </div>
+
                         <div class="col-6 col-md-3">
                             <label>Foto 4</label>
                             {{ f.foto_4 }}
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
-                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% if f.instance.foto_4 %}
+                                <img src="{{ f.instance.foto_4.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% else %}
+                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                            {% endif %}
                         </div>
+
                     </div>
 
                 </div>
@@ -146,16 +164,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 span.textContent = '✅ ' + nombre;
 
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    img.src = e.target.result;
-                    img.classList.remove('d-none');
-                };
-                reader.readAsDataURL(this.files[0]);
+                if (img) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        img.src = e.target.result;
+                        img.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
             } else {
-                span.textContent = '';
-                img.classList.add('d-none');
-                img.src = '';
+                if (span) span.textContent = '';
+                if (img) {
+                    img.classList.add('d-none');
+                    img.src = '';
+                }
             }
         });
     });
