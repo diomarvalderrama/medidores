@@ -91,21 +91,29 @@
                     <!-- 🔹 SECCIÓN 3: FOTOS -->
                     <h5 class="text-primary">3. Fotografías</h5>
                     <div class="row g-2 mt-1">
-                        <div class="col-12 col-md-3">
+                        <div class="col-6 col-md-3">
                             <label>Foto 1</label>
                             {{ f.foto_1 }}
+                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-6 col-md-3">
                             <label>Foto 2</label>
                             {{ f.foto_2 }}
+                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-6 col-md-3">
                             <label>Foto 3</label>
                             {{ f.foto_3 }}
+                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
                         </div>
-                        <div class="col-12 col-md-3">
+                        <div class="col-6 col-md-3">
                             <label>Foto 4</label>
                             {{ f.foto_4 }}
+                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+                            <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
                         </div>
                     </div>
 
@@ -122,5 +130,36 @@
     </form>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            var contenedor = this.parentElement;
+            var span = contenedor.querySelector('.nombre-archivo');
+            var img = contenedor.querySelector('.img-prev');
+
+            if (this.files && this.files[0]) {
+                var nombre = this.files[0].name;
+                if (nombre.length > 20) {
+                    nombre = nombre.substring(0, 17) + '...';
+                }
+                span.textContent = '✅ ' + nombre;
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    img.classList.remove('d-none');
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                span.textContent = '';
+                img.classList.add('d-none');
+                img.src = '';
+            }
+        });
+    });
+});
+</script>
 
 {% endblock %}
