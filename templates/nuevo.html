@@ -4,7 +4,9 @@
 
 <div class="card p-4 shadow">
 
-    <h3 class="mb-4">INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES</h3>
+    <h3 class="mb-4">
+        INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES
+    </h3>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -15,12 +17,14 @@
                 {{ form.errors }}
             </div>
         {% endif %}
+
         {% if formset.errors %}
             <div class="alert alert-danger">
                 <b>Errores en el medidor:</b>
                 {{ formset.errors }}
             </div>
         {% endif %}
+
         {% if formset.non_form_errors %}
             <div class="alert alert-danger">
                 <b>Error general:</b>
@@ -28,115 +32,232 @@
             </div>
         {% endif %}
 
-        <!-- 🔹 FECHAS -->
+        <!-- FECHAS -->
         <div class="row g-3 mb-3">
+
             <div class="col-12 col-md-4">
                 <label>Fecha de realización del informe</label>
                 {{ form.fecha_informe }}
             </div>
+
             <div class="col-12 col-md-4">
                 <label>Fecha de realización del despiece</label>
                 {{ form.fecha_despiece }}
             </div>
+
         </div>
 
         <hr>
 
-        <h5 class="text-primary">1. Información del Medidor</h5>
+        <h5 class="text-primary">
+            1. Información del Medidor
+        </h5>
 
         {{ formset.management_form }}
 
         <div id="medidores">
+
             {% for f in formset %}
+
                 <div class="card p-3 mb-3 border">
 
+                    <!-- DATOS DEL MEDIDOR -->
                     <div class="row g-2">
+
                         <div class="col-12 col-md-2">
                             <label>Serial</label>
                             {{ f.serial }}
                         </div>
+
                         <div class="col-12 col-md-2">
                             <label>Modelo</label>
                             {{ f.modelo }}
                         </div>
+
                         <div class="col-6 col-md-2">
                             <label>Año</label>
                             {{ f.anio }}
                         </div>
+
                         <div class="col-6 col-md-2">
                             <label>Estado</label>
                             {{ f.estado }}
                         </div>
+
                         <div class="col-6 col-md-2">
                             <label>Código</label>
                             {{ f.codigo }}
                         </div>
+
                         <div class="col-6 col-md-2">
                             <label>Medidor con alteración</label>
                             {{ f.medidor_con_alteracion }}
                         </div>
+
                     </div>
 
                     <hr>
 
-                    <h5 class="text-primary">2. Observación del Despiece</h5>
+                    <!-- OBSERVACIONES -->
+                    <h5 class="text-primary">
+                        2. Observación del Despiece
+                    </h5>
+
                     <div class="mt-2">
                         {{ f.observaciones_encontradas }}
                     </div>
 
                     <hr>
 
-                    <h5 class="text-primary">3. Fotografías</h5>
-                    <div class="row g-2 mt-1">
+                    <!-- FOTOGRAFÍAS -->
+                    <h5 class="text-primary">
+                        3. Fotografías
+                    </h5>
 
-                        <div class="col-6 col-md-3">
-                            <label>Foto 1</label>
+                    <div class="d-flex flex-column gap-4 mt-3">
+
+                        <!-- FOTO 1 -->
+                        <div>
+
+                            <label class="fw-bold">
+                                Foto 1
+                            </label>
+
                             {{ f.foto_1 }}
+
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+
                             {% if f.instance.foto_1 %}
-                                <img src="{{ f.instance.foto_1.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    src="{{ f.instance.foto_1.url }}"
+                                    class="mt-2 rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% else %}
-                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    class="img-prev mt-2 d-none rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% endif %}
+
                         </div>
 
-                        <div class="col-6 col-md-3">
-                            <label>Foto 2</label>
+                        <!-- FOTO 2 -->
+                        <div>
+
+                            <label class="fw-bold">
+                                Foto 2
+                            </label>
+
                             {{ f.foto_2 }}
+
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+
                             {% if f.instance.foto_2 %}
-                                <img src="{{ f.instance.foto_2.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    src="{{ f.instance.foto_2.url }}"
+                                    class="mt-2 rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% else %}
-                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    class="img-prev mt-2 d-none rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% endif %}
+
                         </div>
 
-                        <div class="col-6 col-md-3">
-                            <label>Foto 3</label>
+                        <!-- FOTO 3 -->
+                        <div>
+
+                            <label class="fw-bold">
+                                Foto 3
+                            </label>
+
                             {{ f.foto_3 }}
+
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+
                             {% if f.instance.foto_3 %}
-                                <img src="{{ f.instance.foto_3.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    src="{{ f.instance.foto_3.url }}"
+                                    class="mt-2 rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% else %}
-                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    class="img-prev mt-2 d-none rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% endif %}
+
                         </div>
 
-                        <div class="col-6 col-md-3">
-                            <label>Foto 4</label>
+                        <!-- FOTO 4 -->
+                        <div>
+
+                            <label class="fw-bold">
+                                Foto 4
+                            </label>
+
                             {{ f.foto_4 }}
+
                             <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+
                             {% if f.instance.foto_4 %}
-                                <img src="{{ f.instance.foto_4.url }}" class="mt-1 rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    src="{{ f.instance.foto_4.url }}"
+                                    class="mt-2 rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% else %}
-                                <img class="img-prev mt-1 d-none rounded border" style="max-height:80px;max-width:100%;object-fit:cover;">
+                                <img
+                                    class="img-prev mt-2 d-none rounded border"
+                                    style="
+                                        max-height:150px;
+                                        max-width:100%;
+                                        object-fit:cover;
+                                    "
+                                >
                             {% endif %}
+
                         </div>
 
                     </div>
 
                 </div>
+
             {% endfor %}
+
         </div>
 
         <hr>
@@ -150,38 +271,58 @@
 </div>
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
+
     document.querySelectorAll('input[type="file"]').forEach(function(input) {
+
         input.addEventListener('change', function() {
+
             var contenedor = this.parentElement;
             var span = contenedor.querySelector('.nombre-archivo');
             var img = contenedor.querySelector('.img-prev');
 
             if (this.files && this.files[0]) {
+
                 var nombre = this.files[0].name;
+
                 if (nombre.length > 20) {
                     nombre = nombre.substring(0, 17) + '...';
                 }
+
                 span.textContent = '✅ ' + nombre;
 
                 if (img) {
+
                     var reader = new FileReader();
+
                     reader.onload = function(e) {
                         img.src = e.target.result;
                         img.classList.remove('d-none');
                     };
-                    reader.readAsDataURL(this.files[0]);
+
+                    reader.readAsDataURL(input.files[0]);
                 }
+
             } else {
-                if (span) span.textContent = '';
+
+                if (span) {
+                    span.textContent = '';
+                }
+
                 if (img) {
                     img.classList.add('d-none');
                     img.src = '';
                 }
+
             }
+
         });
+
     });
+
 });
+
 </script>
 
 {% endblock %}
