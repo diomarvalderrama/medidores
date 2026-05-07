@@ -35,12 +35,12 @@
         <!-- FECHAS -->
         <div class="row g-3 mb-3">
 
-            <div class="col-12 col-md-4">
+            <<div class="col-12 col-md-6 col-lg-4">
                 <label>Fecha de realización del informe</label>
                 {{ form.fecha_informe }}
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6 col-lg-4">
                 <label>Fecha de realización del despiece</label>
                 {{ form.fecha_despiece }}
             </div>
@@ -62,34 +62,34 @@
                 <div class="card p-3 mb-3 border">
 
                     <!-- DATOS DEL MEDIDOR -->
-                    <div class="row g-2">
+                    <div class="row g-3">
 
-                        <div class="col-12 col-md-2">
+                        <div class="col-12 col-sm-6 col-lg-2">
                             <label>Serial</label>
                             {{ f.serial }}
                         </div>
 
-                        <div class="col-12 col-md-2">
+                        <div class="col-12 col-sm-6 col-lg-2">
                             <label>Modelo</label>
                             {{ f.modelo }}
                         </div>
 
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-lg-2">
                             <label>Año</label>
                             {{ f.anio }}
                         </div>
 
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-lg-2">
                             <label>Estado</label>
                             {{ f.estado }}
                         </div>
 
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-lg-2">
                             <label>Código</label>
                             {{ f.codigo }}
                         </div>
 
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-lg-2">
                             <label>Medidor con alteración</label>
                             {{ f.medidor_con_alteracion }}
                         </div>
@@ -110,156 +110,141 @@
                     <hr>
 
                     <!-- FOTOGRAFÍAS -->
-                    <h5 class="text-primary">
-                        3. Fotografías
-                    </h5>
+<h5 class="text-primary">
+    3. Fotografías
+</h5>
 
-                    <div class="d-flex flex-column gap-4 mt-3">
+<div class="row g-4 mt-2">
 
-                        <!-- FOTO 1 -->
-                        <div>
+    <!-- FOTO 1 -->
+    <div class="col-12 col-md-6">
 
-                            <label class="fw-bold">
-                                Foto 1
-                            </label>
+        <label class="fw-bold">
+            Foto 1
+        </label>
 
-                            {{ f.foto_1 }}
+        {{ f.foto_1 }}
 
-                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+        <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
 
-                            {% if f.instance.foto_1 %}
-                                <img
-                                    src="{{ f.instance.foto_1.url }}"
-                                    class="mt-2 rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% else %}
-                                <img
-                                    class="img-prev mt-2 d-none rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% endif %}
+        {% if f.instance.foto_1 %}
+            <img
+                src="{{ f.instance.foto_1.url }}"
+                class="mt-2 rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% else %}
+            <img
+                class="img-prev mt-2 d-none rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% endif %}
 
-                        </div>
+    </div>
 
-                        <!-- FOTO 2 -->
-                        <div>
+    <!-- FOTO 2 -->
+    <div class="col-12 col-md-6">
 
-                            <label class="fw-bold">
-                                Foto 2
-                            </label>
+        <label class="fw-bold">
+            Foto 2
+        </label>
 
-                            {{ f.foto_2 }}
+        {{ f.foto_2 }}
 
-                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+        <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
 
-                            {% if f.instance.foto_2 %}
-                                <img
-                                    src="{{ f.instance.foto_2.url }}"
-                                    class="mt-2 rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% else %}
-                                <img
-                                    class="img-prev mt-2 d-none rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% endif %}
+        {% if f.instance.foto_2 %}
+            <img
+                src="{{ f.instance.foto_2.url }}"
+                class="mt-2 rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% else %}
+            <img
+                class="img-prev mt-2 d-none rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% endif %}
 
-                        </div>
+    </div>
 
-                        <!-- FOTO 3 -->
-                        <div>
+    <!-- FOTO 3 -->
+    <div class="col-12 col-md-6">
 
-                            <label class="fw-bold">
-                                Foto 3
-                            </label>
+        <label class="fw-bold">
+            Foto 3
+        </label>
 
-                            {{ f.foto_3 }}
+        {{ f.foto_3 }}
 
-                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+        <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
 
-                            {% if f.instance.foto_3 %}
-                                <img
-                                    src="{{ f.instance.foto_3.url }}"
-                                    class="mt-2 rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% else %}
-                                <img
-                                    class="img-prev mt-2 d-none rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% endif %}
+        {% if f.instance.foto_3 %}
+            <img
+                src="{{ f.instance.foto_3.url }}"
+                class="mt-2 rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% else %}
+            <img
+                class="img-prev mt-2 d-none rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% endif %}
 
-                        </div>
+    </div>
 
-                        <!-- FOTO 4 -->
-                        <div>
+    <!-- FOTO 4 -->
+    <div class="col-12 col-md-6">
 
-                            <label class="fw-bold">
-                                Foto 4
-                            </label>
+        <label class="fw-bold">
+            Foto 4
+        </label>
 
-                            {{ f.foto_4 }}
+        {{ f.foto_4 }}
 
-                            <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
+        <small class="text-success fw-bold d-block mt-1 nombre-archivo"></small>
 
-                            {% if f.instance.foto_4 %}
-                                <img
-                                    src="{{ f.instance.foto_4.url }}"
-                                    class="mt-2 rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% else %}
-                                <img
-                                    class="img-prev mt-2 d-none rounded border"
-                                    style="
-                                        max-height:150px;
-                                        max-width:100%;
-                                        object-fit:cover;
-                                    "
-                                >
-                            {% endif %}
+        {% if f.instance.foto_4 %}
+            <img
+                src="{{ f.instance.foto_4.url }}"
+                class="mt-2 rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% else %}
+            <img
+                class="img-prev mt-2 d-none rounded border w-100"
+                style="
+                    max-height:220px;
+                    object-fit:cover;
+                "
+            >
+        {% endif %}
 
-                        </div>
+    </div>
 
-                    </div>
-
-                </div>
-
-            {% endfor %}
-
-        </div>
-
+</div>
         <hr>
 
         <button type="submit" class="btn btn-success w-100">
