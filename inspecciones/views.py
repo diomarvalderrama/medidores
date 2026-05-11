@@ -45,7 +45,6 @@ def detalle_registro(request, pk):
 
 
 # 🔹 CREAR
-# 🔹 CREAR
 @login_required
 def nuevo_registro(request):
     if request.method == 'POST':
@@ -209,6 +208,14 @@ def generar_informe(request):
         spaceAfter=10,
     )
 
+    # ✅ FIX: Estilo centrado para firma, nombre y cargo
+    firma_style = ParagraphStyle(
+        'FirmaStyle',
+        fontName=FONT,
+        fontSize=9,
+        alignment=TA_CENTER,
+    )
+
     styles['Heading2'].fontName = FONT
     styles['Heading2'].fontSize = 10
     styles['Heading3'].fontName = FONT
@@ -258,6 +265,7 @@ def generar_informe(request):
             elementos.append(Paragraph(m.observaciones_encontradas, styles['Normal']))
         elementos.append(Spacer(1, 6))
 
+        # ✅ FIX: colWidths ajustados al tamaño real de las imágenes (120px + padding)
         fotos = []
         for foto in [m.foto_1, m.foto_2, m.foto_3, m.foto_4]:
             if foto:
@@ -268,29 +276,38 @@ def generar_informe(request):
             else:
                 fotos.append("")
 
-        tabla_fotos = Table([[fotos[0], fotos[1]], [fotos[2], fotos[3]]], colWidths=[250, 250])
+        tabla_fotos = Table(
+            [[fotos[0], fotos[1]], [fotos[2], fotos[3]]],
+            colWidths=[130, 130]  # ✅ Antes era [250, 250] — causaba el espacio grande
+        )
         tabla_fotos.setStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 5),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 5),
         ])
         elementos.append(tabla_fotos)
 
     elementos.append(Spacer(1, 20))
 
+    # ✅ FIX: Firma centrada, sin estirar — tabla de una sola columna centrada
     firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
     if os.path.exists(firma_path):
-        firma_tabla_data = [[Image(firma_path, width=120, height=40), '']]
+        firma_tabla_data = [[Image(firma_path, width=100, height=50)]]
     else:
-        firma_tabla_data = [['', '']]
+        firma_tabla_data = [['']]
 
-    firma_tabla = Table(firma_tabla_data, colWidths=[200, 300])
+    firma_tabla = Table(firma_tabla_data, colWidths=[500])
     firma_tabla.setStyle([
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
     ])
     elementos.append(firma_tabla)
 
-    elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", styles['Normal']))
-    elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", styles['Normal']))
+    # ✅ FIX: Nombre y cargo también centrados
+    elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", firma_style))
+    elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", firma_style))
 
     def header_footer(canvas, doc):
         canvas.saveState()
