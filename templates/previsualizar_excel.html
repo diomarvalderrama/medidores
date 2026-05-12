@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-4 shadow">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0">📋 Registros cargados desde Excel</h5>
+    <a href="{% url 'importar_excel' %}" class="btn btn-outline-secondary btn-sm">
+      ← Cargar otro archivo
+    </a>
+  </div>
+
+  <form method="post" action="{% url 'generar_pdf_excel' %}">
+    {% csrf_token %}
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead style="background-color:#003366; color:white;">
+          <tr>
+            <th style="width:40px;">
+              <input type="checkbox" id="seleccionar_todos" title="Seleccionar todos">
+            </th>
+            <th>#</th>
+            <th>Serial</th>
+            <th>Modelo</th>
+            <th>Año</th>
+            <th>Estado</th>
+            <th>Código</th>
+            <th>Fecha Despiece</th>
+            <th>Observaciones</th>
+            <th>Fotos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in medidores %}
+          <tr>
+            <td class="text-center">
+              <input type="checkbox" name="indices" value="{{ forloop.counter0 }}">
+            </td>
+            <td>{{ forloop.counter }}</td>
+            <td><strong>{{ m.serial }}</strong></td>
+            <td>{{ m.modelo }}</td>
+            <td>{{ m.anio }}</td>
+            <td>
+              {% if m.estado == 'Dañado' or m.estado == 'MALO' or m.estado == 'FUERA_SERVICIO' %}
+                <span class="badge bg-danger">{{ m.estado }}</span>
+              {% elif m.estado == 'REGULAR' or m.estado == 'DETERIORADO' %}
+                <span class="badge bg-warning text-dark">{{ m.estado }}</span>
+              {% else %}
+                <span class="badge bg-success">{{ m.estado }}</span>
+              {% endif %}
+            </td>
+            <td>{{ m.codigo }}</td>
+            <td>{{ m.fecha_despiece }}</td>
+            <td style="max-width:220px; font-size:0.82rem;">{{ m.observaciones }}</td>
+            <td class="text-center">
+              {% if m.urls_fotos %}
+                <span class="badge bg-secondary">{{ m.urls_fotos|length }} foto(s)</span>
+              {% else %}
+                <span class="text-muted small">Sin fotos</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="text-center text-muted">No hay registros.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button type="submit" class="btn btn-success px-5"
+              style="background-color:#003366; border-color:#003366;">
+        📄 Generar PDF con seleccionados
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+document.getElementById('seleccionar_todos').addEventListener('change', function() {
+  document.querySelectorAll('input[name="indices"]').forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}

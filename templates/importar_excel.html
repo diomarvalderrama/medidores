@@ -1,55 +1,44 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
 
-      <div class="card shadow-sm">
-        <div class="card-header" style="background-color:#003366; color:white;">
-          <h5 class="mb-0">📥 Importar Excel de Microsoft Forms</h5>
-        </div>
-        <div class="card-body">
-
-          {% if messages %}
-            {% for msg in messages %}
-              <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
-            {% endfor %}
-          {% endif %}
-
-          <p class="text-muted small mb-3">
-            Sube el archivo <strong>.xlsx</strong> exportado desde Microsoft Forms.
-            La app leerá los datos y generará el PDF del informe automáticamente.
-          </p>
-
-          <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="archivo_excel" class="form-label fw-bold">Archivo Excel (.xlsx)</label>
-              <input
-                type="file"
-                class="form-control"
-                id="archivo_excel"
-                name="archivo_excel"
-                accept=".xlsx"
-                required
-              >
-            </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary" style="background-color:#003366; border-color:#003366;">
-                📄 Generar PDF
-              </button>
-            </div>
-          </form>
-
-        </div>
+    <div class="card shadow-sm">
+      <div class="card-header" style="background-color:#003366; color:white;">
+        <h5 class="mb-0">📥 Importar Excel de Microsoft Forms</h5>
       </div>
+      <div class="card-body">
 
-      <div class="mt-3 text-center">
-        <a href="{% url 'index' %}" class="text-secondary small">← Volver al inicio</a>
+        <p class="text-muted small mb-4">
+          Sube el archivo <strong>.xlsx</strong> exportado desde Microsoft Forms.
+          La app leerá los registros y te permitirá seleccionar cuáles incluir en el informe PDF.
+        </p>
+
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label for="archivo_excel" class="form-label fw-bold">Archivo Excel (.xlsx)</label>
+            <input
+              type="file"
+              class="form-control"
+              id="archivo_excel"
+              name="archivo_excel"
+              accept=".xlsx"
+              required
+            >
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary"
+                    style="background-color:#003366; border-color:#003366;">
+              Cargar registros →
+            </button>
+          </div>
+        </form>
+
       </div>
-
     </div>
+
   </div>
 </div>
 {% endblock %}

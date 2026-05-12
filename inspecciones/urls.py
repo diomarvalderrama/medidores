@@ -9,7 +9,11 @@ urlpatterns = [
     path('editar/<int:pk>/', views.editar_registro, name='editar_registro'),
     path('eliminar/<int:pk>/', views.eliminar_registro, name='eliminar_registro'),
     path('exportar-excel/', views.exportar_excel, name='exportar_excel'),
-    path('importar-excel/', views.importar_excel, name='importar_excel'),  # 🆕 NUEVO
+
+    # 🆕 FLUJO EXCEL
+    path('importar-excel/', views.importar_excel, name='importar_excel'),
+    path('previsualizar-excel/', views.previsualizar_excel, name='previsualizar_excel'),
+    path('generar-pdf-excel/', views.generar_pdf_excel, name='generar_pdf_excel'),
 
     # 🔐 LOGIN
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),

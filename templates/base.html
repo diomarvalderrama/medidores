@@ -2,182 +2,76 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <!-- RESPONSIVE -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Laboratorio</title>
-
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-
-        body {
-            background-color: #f4f6f9;
+        body { background-color: #f4f6f9; }
+        .navbar { background-color: #003366; }
+        .navbar-brand, .nav-link { color: white !important; }
+        .card { border-radius: 12px; }
+        input, select, textarea {
+            width: 100%; padding: 10px;
+            border-radius: 8px; border: 1px solid #ced4da; margin-top: 4px;
         }
-
-        .navbar {
-            background-color: #003366;
-        }
-
-        .navbar-brand,
-        .nav-link {
-            color: white !important;
-        }
-
-        .card {
-            border-radius: 12px;
-        }
-
-        input,
-        select,
-        textarea {
-
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            margin-top: 4px;
-
-        }
-
-        textarea {
-            min-height: 120px;
-        }
-
-        label {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        h5 {
-            margin-bottom: 15px;
-        }
-
-        hr {
-            margin: 25px 0;
-        }
-
-        button {
-            border-radius: 8px;
-        }
-
-        img {
-            width: 100%;
-            height: auto;
-        }
-
-        /* RESPONSIVE EXTRA */
-
+        textarea { min-height: 120px; }
+        label { font-weight: 600; margin-bottom: 4px; }
+        h5 { margin-bottom: 15px; }
+        hr { margin: 25px 0; }
+        button { border-radius: 8px; }
+        img { width: 100%; height: auto; }
         @media (max-width: 768px) {
-
-            .card {
-                padding: 15px !important;
-            }
-
-            h3 {
-                font-size: 1.2rem;
-            }
-
-            .navbar .container {
-                flex-direction: column;
-                gap: 10px;
-                align-items: stretch;
-            }
-
-            .navbar .d-flex {
-                width: 100%;
-                justify-content: center;
-            }
-
+            .card { padding: 15px !important; }
+            h3 { font-size: 1.2rem; }
+            .navbar .container { flex-direction: column; gap: 10px; align-items: stretch; }
+            .navbar .d-flex { width: 100%; justify-content: center; }
         }
-
     </style>
-
 </head>
 
 <body>
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg">
-
         <div class="container-fluid px-3 px-md-4">
 
-            <a class="navbar-brand fw-bold" href="/">
+            <a class="navbar-brand fw-bold" href="{% url 'importar_excel' %}">
                 Laboratorio
             </a>
 
             <div class="d-flex flex-wrap gap-2 align-items-center">
 
-                <a href="/nuevo/" class="btn btn-light">
-                    Nuevo Registro
+                <!-- 🆕 Botón principal: Importar Excel -->
+                <a href="{% url 'importar_excel' %}" class="btn btn-light">
+                    📥 Importar Excel
                 </a>
 
-                <a href="/seleccionar/" class="btn btn-outline-light">
-                    Generar Informe
-                </a>
-
-                <form
-                    method="post"
-                    action="{% url 'logout' %}"
-                    style="margin:0;"
-                >
-
+                <form method="post" action="{% url 'logout' %}" style="margin:0;">
                     {% csrf_token %}
-
-                    <button class="btn btn-danger btn-sm">
-                        Salir
-                    </button>
-
+                    <button class="btn btn-danger btn-sm">Salir</button>
                 </form>
 
             </div>
-
         </div>
-
     </nav>
 
     <!-- CONTENIDO -->
     <div class="container-fluid px-3 px-md-4 mt-4">
 
-        <!-- MENSAJES -->
         {% if messages %}
-
             {% for message in messages %}
-
-                <div
-                    class="alert alert-{{ message.tags }} alert-dismissible fade show"
-                    role="alert"
-                >
-
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
-
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                    ></button>
-
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-
             {% endfor %}
-
         {% endif %}
 
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
 
     </div>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
-
 </html>
