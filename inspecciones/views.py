@@ -1,10 +1,14 @@
 import os
+import io
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import openpyxl
+from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from PIL import Image as PILImage
 
 from .models import RegistroInspeccion, Medidor
 from .forms import RegistroForm, MedidorFormSet
@@ -175,7 +179,7 @@ class NumberedCanvas(canvas.Canvas):
             f"Página {self._pageNumber} de {total} / MPE-02-F-28-01 Versión: 12 / 2025-08-01")
 
 
-# 🔹 GENERAR INFORME PDF
+# 🔹 GENERAR INFORME PDF (desde BD)
 @login_required
 def generar_informe(request):
     ids = request.POST.getlist('medidores')
@@ -208,7 +212,6 @@ def generar_informe(request):
         spaceAfter=10,
     )
 
-    # ✅ FIX: Estilo centrado para firma, nombre y cargo
     firma_style = ParagraphStyle(
         'FirmaStyle',
         fontName=FONT,
@@ -265,20 +268,19 @@ def generar_informe(request):
             elementos.append(Paragraph(m.observaciones_encontradas, styles['Normal']))
         elementos.append(Spacer(1, 6))
 
-        # ✅ FIX: colWidths ajustados al tamaño real de las imágenes (120px + padding)
         fotos = []
         for foto in [m.foto_1, m.foto_2, m.foto_3, m.foto_4]:
             if foto:
                 try:
                     fotos.append(Image(foto.path, width=120, height=90))
-                except:
+                except Exception:
                     fotos.append("")
             else:
                 fotos.append("")
 
         tabla_fotos = Table(
             [[fotos[0], fotos[1]], [fotos[2], fotos[3]]],
-            colWidths=[130, 130]  # ✅ Antes era [250, 250] — causaba el espacio grande
+            colWidths=[130, 130]
         )
         tabla_fotos.setStyle([
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -292,7 +294,6 @@ def generar_informe(request):
 
     elementos.append(Spacer(1, 20))
 
-    # ✅ FIX: Firma centrada, sin estirar — tabla de una sola columna centrada
     firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
     if os.path.exists(firma_path):
         firma_tabla_data = [[Image(firma_path, width=100, height=50)]]
@@ -305,7 +306,6 @@ def generar_informe(request):
     ])
     elementos.append(firma_tabla)
 
-    # ✅ FIX: Nombre y cargo también centrados
     elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", firma_style))
     elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", firma_style))
 
@@ -314,14 +314,226 @@ def generar_informe(request):
         try:
             logo = os.path.join(settings.MEDIA_ROOT, 'logo.png')
             canvas.drawImage(logo, 40, 750, width=520, height=70)
-        except:
+        except Exception:
             pass
         try:
             pie = os.path.join(settings.MEDIA_ROOT, 'pie.png')
             canvas.drawImage(pie, 40, 30, width=520, height=60)
-        except:
+        except Exception:
             pass
         canvas.restoreState()
 
     doc.build(elementos, onFirstPage=header_footer, onLaterPages=header_footer, canvasmaker=NumberedCanvas)
     return response
+
+
+# 🔹 IMPORTAR EXCEL Y GENERAR PDF (desde Microsoft Forms)
+@login_required
+def importar_excel(request):
+    """
+    Recibe un Excel exportado de Microsoft Forms.
+    Lee los datos, descarga las fotos desde SharePoint y genera el PDF
+    con el mismo formato del informe existente. Sin guardar en BD.
+    """
+    if request.method == 'POST' and request.FILES.get('archivo_excel'):
+        archivo = request.FILES['archivo_excel']
+
+        # ── 1. Leer el Excel ────────────────────────────────────────────
+        wb = load_workbook(filename=archivo)
+        ws = wb.active
+
+        # Mapear encabezados → índice de columna (tolerante a cambios de orden)
+        encabezados = {cell.value: cell.column - 1 for cell in ws[1] if cell.value}
+
+        def col_idx(nombre):
+            return encabezados.get(nombre)
+
+        medidores_data = []
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not any(row):
+                continue
+
+            def v(nombre):
+                idx = col_idx(nombre)
+                return str(row[idx]).strip() if idx is not None and row[idx] is not None else ''
+
+            medidores_data.append({
+                'serial':        v('Serial'),
+                'modelo':        v('Modelo'),
+                'anio':          v('Año'),
+                'estado':        v('Estado'),
+                'codigo':        v('Codigo'),
+                'observaciones': v('Observaciones'),
+                'foto_1':        v('Registro fotográfico 1'),
+                'foto_2':        v('Registro fotográfico 2'),
+                'foto_3':        v('Registro fotográfico 3'),
+                'foto_4':        v('Registro fotográfico 4'),
+            })
+
+        if not medidores_data:
+            from django.contrib import messages
+            messages.error(request, 'El archivo Excel no contiene datos válidos.')
+            return redirect('importar_excel')
+
+        # ── 2. Función auxiliar: descargar foto desde URL ───────────────
+        def descargar_foto(url):
+            """
+            Descarga la imagen desde una URL de SharePoint.
+            Devuelve un objeto BytesIO listo para ReportLab, o None si falla.
+
+            NOTA: Si las URLs de SharePoint requieren autenticación,
+            agrega aquí las cookies o el token de acceso:
+                headers = {'Authorization': 'Bearer TU_TOKEN'}
+                resp = requests.get(url, headers=headers, timeout=15)
+            """
+            if not url or not url.startswith('http'):
+                return None
+            try:
+                resp = requests.get(url, timeout=15)
+                if resp.status_code == 200:
+                    img = PILImage.open(io.BytesIO(resp.content)).convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG')
+                    buf.seek(0)
+                    return buf
+            except Exception:
+                pass
+            return None
+
+        # ── 3. Generar el PDF ───────────────────────────────────────────
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="informe_excel.pdf"'
+
+        doc = SimpleDocTemplate(
+            response,
+            rightMargin=40, leftMargin=40,
+            topMargin=120, bottomMargin=100
+        )
+        styles = getSampleStyleSheet()
+        styles['Normal'].fontName = FONT
+        styles['Normal'].fontSize = 9
+        styles['Normal'].alignment = 4
+
+        titulo_style = ParagraphStyle(
+            'TituloInformeExcel',
+            fontName=FONT,
+            fontSize=11,
+            alignment=TA_CENTER,
+            spaceAfter=10,
+        )
+        firma_style = ParagraphStyle(
+            'FirmaStyleExcel',
+            fontName=FONT,
+            fontSize=9,
+            alignment=TA_CENTER,
+        )
+        styles['Heading2'].fontName = FONT
+        styles['Heading2'].fontSize = 10
+        styles['Heading3'].fontName = FONT
+        styles['Heading3'].fontSize = 9
+
+        elementos = []
+
+        elementos.append(Paragraph(
+            "<b>INFORME TÉCNICO DE EVALUACIÓN DESPIECE DE MEDIDORES</b>",
+            titulo_style
+        ))
+        elementos.append(Spacer(1, 12))
+
+        # ── Sección 1: Tabla resumen ──────────────────────────────────
+        elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
+        header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO']
+        data_tabla = [header]
+        for m in medidores_data:
+            data_tabla.append([m['serial'], m['modelo'], m['anio'], m['estado'], m['codigo']])
+
+        tabla = Table(data_tabla, colWidths=[95, 95, 45, 80, 130])
+        tabla.setStyle([
+            ('BACKGROUND',    (0, 0), (-1, 0),  colors.HexColor("#E8E8E8")),
+            ('TEXTCOLOR',     (0, 0), (-1, 0),  colors.black),
+            ('FONTNAME',      (0, 0), (-1, -1), FONT),
+            ('FONTSIZE',      (0, 0), (-1, -1), 8),
+            ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+            ('GRID',          (0, 0), (-1, -1), 0.3, colors.HexColor("#CCCCCC")),
+            ('ROWBACKGROUNDS',(0, 1), (-1, -1), [colors.HexColor("#C8DDE5"), colors.white]),
+        ])
+        elementos.append(tabla)
+        elementos.append(Spacer(1, 12))
+
+        # ── Sección 2: Observaciones y fotos por medidor ──────────────
+        elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
+
+        for m in medidores_data:
+            elementos.append(Spacer(1, 8))
+            elementos.append(Paragraph(
+                f"<b>Serial:</b> {m['serial']} &nbsp;&nbsp; <b>Modelo:</b> {m['modelo']}",
+                styles['Heading3']
+            ))
+            elementos.append(Paragraph("<b>Observación encontrada</b>", styles['Heading3']))
+            if m['observaciones']:
+                elementos.append(Paragraph(m['observaciones'], styles['Normal']))
+            elementos.append(Spacer(1, 6))
+
+            # Descargar fotos y armar grilla 2x2
+            fotos_rl = []
+            for url_key in ['foto_1', 'foto_2', 'foto_3', 'foto_4']:
+                buf = descargar_foto(m[url_key])
+                if buf:
+                    fotos_rl.append(Image(buf, width=120, height=90))
+                else:
+                    fotos_rl.append("")
+
+            tabla_fotos = Table(
+                [[fotos_rl[0], fotos_rl[1]], [fotos_rl[2], fotos_rl[3]]],
+                colWidths=[130, 130]
+            )
+            tabla_fotos.setStyle([
+                ('ALIGN',         (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN',        (0, 0), (-1, -1), 'MIDDLE'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('TOPPADDING',    (0, 0), (-1, -1), 5),
+                ('LEFTPADDING',   (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING',  (0, 0), (-1, -1), 5),
+            ])
+            elementos.append(tabla_fotos)
+
+        elementos.append(Spacer(1, 20))
+
+        # ── Firma ─────────────────────────────────────────────────────
+        firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
+        if os.path.exists(firma_path):
+            firma_tabla_data = [[Image(firma_path, width=100, height=50)]]
+        else:
+            firma_tabla_data = [['']]
+
+        firma_tabla = Table(firma_tabla_data, colWidths=[500])
+        firma_tabla.setStyle([('ALIGN', (0, 0), (0, 0), 'CENTER')])
+        elementos.append(firma_tabla)
+        elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", firma_style))
+        elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", firma_style))
+
+        # ── Header / footer (mismo que generar_informe) ───────────────
+        def header_footer(canvas, doc):
+            canvas.saveState()
+            try:
+                logo = os.path.join(settings.MEDIA_ROOT, 'logo.png')
+                canvas.drawImage(logo, 40, 750, width=520, height=70)
+            except Exception:
+                pass
+            try:
+                pie = os.path.join(settings.MEDIA_ROOT, 'pie.png')
+                canvas.drawImage(pie, 40, 30, width=520, height=60)
+            except Exception:
+                pass
+            canvas.restoreState()
+
+        doc.build(
+            elementos,
+            onFirstPage=header_footer,
+            onLaterPages=header_footer,
+            canvasmaker=NumberedCanvas
+        )
+        return response
+
+    # GET → mostrar formulario
+    return render(request, 'importar_excel.html')

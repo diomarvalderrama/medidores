@@ -9,6 +9,7 @@ urlpatterns = [
     path('editar/<int:pk>/', views.editar_registro, name='editar_registro'),
     path('eliminar/<int:pk>/', views.eliminar_registro, name='eliminar_registro'),
     path('exportar-excel/', views.exportar_excel, name='exportar_excel'),
+    path('importar-excel/', views.importar_excel, name='importar_excel'),  # 🆕 NUEVO
 
     # 🔐 LOGIN
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
