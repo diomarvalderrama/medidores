@@ -237,7 +237,7 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
     """
     Construye los elementos ReportLab del informe.
     medidores_data: lista de dicts con claves:
-        serial, modelo, anio, estado, codigo, observaciones,
+        serial, modelo, anio, estado, codigo, alteracion, observaciones,
         fotos (lista de hasta 4 Image de ReportLab o "")
     """
     elementos = []
@@ -253,18 +253,18 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
         f"<b>Fecha del despiece:</b> {fecha_despiece_str}", styles['Normal']))
     elementos.append(Spacer(1, 12))
 
-    # Sección 1: tabla resumen
+    # ── Sección 1: tabla resumen ──────────────────────────────
     elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
-    header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO']
+    header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'MEDIDOR CON ALTERACIÓN']
     data_tabla = [header]
     for m in medidores_data:
         data_tabla.append([
             m['serial'], m['modelo'], str(m['anio']),
-            m['estado'], m['codigo']
+            m['estado'], m['codigo'], m['alteracion']
         ])
 
-    tabla = Table(data_tabla, colWidths=[95, 95, 45, 100, 110])
-    tabla.setStyle([
+    tabla = Table(data_tabla, colWidths=[75, 75, 35, 65, 65, 130])
+    tabla_style = [
         ('BACKGROUND',     (0, 0), (-1, 0),  colors.HexColor("#E8E8E8")),
         ('TEXTCOLOR',      (0, 0), (-1, 0),  colors.black),
         ('FONTNAME',       (0, 0), (-1, -1), FONT),
@@ -272,11 +272,22 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
         ('ALIGN',          (0, 0), (-1, -1), 'CENTER'),
         ('GRID',           (0, 0), (-1, -1), 0.3, colors.HexColor("#CCCCCC")),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor("#C8DDE5"), colors.white]),
-    ])
+        # Columna ALTERACIÓN: fondo rosado por defecto
+        ('BACKGROUND',     (5, 0), (5, 0),  colors.HexColor("#E3CFCF")),
+        ('BACKGROUND',     (5, 1), (5, -1), colors.HexColor("#E3CFCF")),
+    ]
+
+    # Si alteración es SI → fondo rojo y texto blanco
+    for i, m in enumerate(medidores_data, 1):
+        if str(m['alteracion']).upper() == 'SI':
+            tabla_style.append(('BACKGROUND', (5, i), (5, i), colors.red))
+            tabla_style.append(('TEXTCOLOR',  (5, i), (5, i), colors.white))
+
+    tabla.setStyle(tabla_style)
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    # Sección 2: observaciones + fotos por medidor
+    # ── Sección 2: observaciones + fotos por medidor ──────────
     elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
 
     for m in medidores_data:
@@ -310,7 +321,7 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
 
     elementos.append(Spacer(1, 20))
 
-    # Firma
+    # ── Firma ─────────────────────────────────────────────────
     firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
     if os.path.exists(firma_path):
         firma_tabla_data = [[Image(firma_path, width=100, height=50)]]
@@ -363,6 +374,7 @@ def generar_informe(request):
             'anio':          str(m.anio),
             'estado':        m.estado,
             'codigo':        m.codigo,
+            'alteracion':    m.medidor_con_alteracion,
             'observaciones': m.observaciones_encontradas,
             'fotos':         fotos,
         })
@@ -414,6 +426,7 @@ def _leer_excel(archivo):
     - Año: toma 'Año', si está vacío usa 'Año1'
     - Fecha despiece: columna 'Hora de inicio'
     - Fotos: una celda puede contener varias URLs separadas por ';'
+    - Alteración: columna 'MEDIDOR CON ALTERACIÓN'
     Devuelve lista de dicts.
     """
     wb = load_workbook(filename=archivo, read_only=True)
@@ -460,6 +473,9 @@ def _leer_excel(archivo):
                     if url:
                         urls_fotos.append(url)
 
+        # Alteración
+        alteracion = v('MEDIDOR CON ALTERACIÓN')
+
         medidores.append({
             'serial':         v('Serial'),
             'modelo':         v('Modelo'),
@@ -467,6 +483,7 @@ def _leer_excel(archivo):
             'estado':         v('Estado'),
             'codigo':         v('Codigo'),
             'observaciones':  v('Observaciones'),
+            'alteracion':     alteracion,
             'fecha_despiece': fecha_despiece,
             'urls_fotos':     urls_fotos[:4],
         })
@@ -549,6 +566,7 @@ def generar_pdf_excel(request):
             'anio':          m['anio'],
             'estado':        m['estado'],
             'codigo':        m['codigo'],
+            'alteracion':    m.get('alteracion', 'NO'),
             'observaciones': m['observaciones'],
             'fotos':         fotos,
         })

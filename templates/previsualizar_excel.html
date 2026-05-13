@@ -26,6 +26,7 @@
             <th>Año</th>
             <th>Estado</th>
             <th>Código</th>
+            <th>Con Alteración</th>
             <th>Fecha Despiece</th>
             <th>Observaciones</th>
             <th>Fotos</th>
@@ -51,8 +52,15 @@
               {% endif %}
             </td>
             <td>{{ m.codigo }}</td>
+            <td class="text-center">
+              {% if m.alteracion == 'SI' %}
+                <span class="badge bg-danger">SI</span>
+              {% else %}
+                <span class="badge bg-secondary">NO</span>
+              {% endif %}
+            </td>
             <td>{{ m.fecha_despiece }}</td>
-            <td style="max-width:220px; font-size:0.82rem;">{{ m.observaciones }}</td>
+            <td style="max-width:200px; font-size:0.82rem;">{{ m.observaciones }}</td>
             <td class="text-center">
               {% if m.urls_fotos %}
                 <span class="badge bg-secondary">{{ m.urls_fotos|length }} foto(s)</span>
@@ -63,7 +71,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="10" class="text-center text-muted">No hay registros.</td>
+            <td colspan="11" class="text-center text-muted">No hay registros.</td>
           </tr>
           {% endfor %}
         </tbody>
