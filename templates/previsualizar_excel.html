@@ -3,18 +3,43 @@
 {% block content %}
 <div class="card p-4 shadow">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0">📋 Registros cargados desde Excel</h5>
     <a href="{% url 'importar_excel' %}" class="btn btn-outline-secondary btn-sm">
       ← Cargar otro archivo
     </a>
   </div>
 
+  <!-- 🔍 BUSCADORES -->
+  <div class="row g-2 mb-3">
+    <div class="col-md-4">
+      <input
+        type="text"
+        id="buscar_serial"
+        class="form-control"
+        placeholder="🔍 Buscar por serial..."
+        style="margin-top:0;"
+      >
+    </div>
+    <div class="col-md-3">
+      <input
+        type="date"
+        id="buscar_fecha"
+        class="form-control"
+        placeholder="Filtrar por fecha despiece"
+        style="margin-top:0;"
+      >
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-secondary w-100" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+  </div>
+
   <form method="post" action="{% url 'generar_pdf_excel' %}">
     {% csrf_token %}
 
     <div class="table-responsive">
-      <table class="table table-bordered table-hover align-middle">
+      <table class="table table-bordered table-hover align-middle" id="tabla_medidores">
         <thead style="background-color:#003366; color:white;">
           <tr>
             <th style="width:40px;">
@@ -34,7 +59,9 @@
         </thead>
         <tbody>
           {% for m in medidores %}
-          <tr>
+          <tr class="fila-medidor"
+              data-serial="{{ m.serial|lower }}"
+              data-fecha="{{ m.fecha_despiece }}">
             <td class="text-center">
               <input type="checkbox" name="indices" value="{{ forloop.counter0 }}">
             </td>
@@ -78,7 +105,8 @@
       </table>
     </div>
 
-    <div class="d-flex justify-content-end mt-3">
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <small class="text-muted" id="contador_visible"></small>
       <button type="submit" class="btn btn-success px-5"
               style="background-color:#003366; border-color:#003366;">
         📄 Generar PDF con seleccionados
@@ -90,8 +118,48 @@
 </div>
 
 <script>
+const filas = document.querySelectorAll('.fila-medidor');
+
+function filtrar() {
+  const serial = document.getElementById('buscar_serial').value.toLowerCase().trim();
+  const fecha  = document.getElementById('buscar_fecha').value.trim();
+  let visibles = 0;
+
+  filas.forEach(fila => {
+    const matchSerial = !serial || fila.dataset.serial.includes(serial);
+    const matchFecha  = !fecha  || fila.dataset.fecha === fecha;
+    if (matchSerial && matchFecha) {
+      fila.style.display = '';
+      visibles++;
+    } else {
+      fila.style.display = 'none';
+    }
+  });
+
+  document.getElementById('contador_visible').textContent =
+    `Mostrando ${visibles} de ${filas.length} registros`;
+}
+
+function limpiarFiltros() {
+  document.getElementById('buscar_serial').value = '';
+  document.getElementById('buscar_fecha').value = '';
+  filtrar();
+}
+
+document.getElementById('buscar_serial').addEventListener('input', filtrar);
+document.getElementById('buscar_fecha').addEventListener('change', filtrar);
+
 document.getElementById('seleccionar_todos').addEventListener('change', function() {
-  document.querySelectorAll('input[name="indices"]').forEach(cb => cb.checked = this.checked);
+  document.querySelectorAll('input[name="indices"]').forEach(cb => {
+    // Solo seleccionar filas visibles
+    const fila = cb.closest('tr');
+    if (fila.style.display !== 'none') {
+      cb.checked = this.checked;
+    }
+  });
 });
+
+// Inicializar contador
+filtrar();
 </script>
 {% endblock %}

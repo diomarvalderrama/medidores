@@ -32,7 +32,7 @@ else:
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 INDEX → redirige directo al importador
+# 🔹 INDEX
 # ─────────────────────────────────────────────────────────────
 @login_required
 def index(request):
@@ -49,7 +49,7 @@ def detalle_registro(request, pk):
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 CREAR (se mantiene por compatibilidad)
+# 🔹 CREAR
 # ─────────────────────────────────────────────────────────────
 @login_required
 def nuevo_registro(request):
@@ -154,7 +154,7 @@ def exportar_excel(request):
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 SELECCIONAR MEDIDORES (BD — se mantiene)
+# 🔹 SELECCIONAR MEDIDORES (BD)
 # ─────────────────────────────────────────────────────────────
 @login_required
 def seleccionar_medidores(request):
@@ -195,7 +195,7 @@ class NumberedCanvas(canvas.Canvas):
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 HELPERS COMPARTIDOS PDF
+# 🔹 HELPERS PDF
 # ─────────────────────────────────────────────────────────────
 def _get_styles():
     styles = getSampleStyleSheet()
@@ -206,7 +206,6 @@ def _get_styles():
     styles['Heading2'].fontSize = 10
     styles['Heading3'].fontName = FONT
     styles['Heading3'].fontSize = 9
-
     titulo_style = ParagraphStyle(
         'TituloInforme', fontName=FONT, fontSize=11,
         alignment=TA_CENTER, spaceAfter=10,
@@ -234,12 +233,6 @@ def _header_footer(canvas_obj, doc):
 
 def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
                         styles, titulo_style, firma_style):
-    """
-    Construye los elementos ReportLab del informe.
-    medidores_data: lista de dicts con claves:
-        serial, modelo, anio, estado, codigo, alteracion, observaciones,
-        fotos (lista de hasta 4 Image de ReportLab o "")
-    """
     elementos = []
 
     elementos.append(Paragraph(
@@ -253,7 +246,7 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
         f"<b>Fecha del despiece:</b> {fecha_despiece_str}", styles['Normal']))
     elementos.append(Spacer(1, 12))
 
-    # ── Sección 1: tabla resumen ──────────────────────────────
+    # Sección 1: tabla resumen
     elementos.append(Paragraph("<b>1. INFORMACIÓN DEL MEDIDOR</b>", styles['Heading2']))
     header = ['SERIAL', 'MODELO', 'AÑO', 'ESTADO', 'CODIGO', 'MEDIDOR CON ALTERACIÓN']
     data_tabla = [header]
@@ -272,12 +265,9 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
         ('ALIGN',          (0, 0), (-1, -1), 'CENTER'),
         ('GRID',           (0, 0), (-1, -1), 0.3, colors.HexColor("#CCCCCC")),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.HexColor("#C8DDE5"), colors.white]),
-        # Columna ALTERACIÓN: fondo rosado por defecto
         ('BACKGROUND',     (5, 0), (5, 0),  colors.HexColor("#E3CFCF")),
         ('BACKGROUND',     (5, 1), (5, -1), colors.HexColor("#E3CFCF")),
     ]
-
-    # Si alteración es SI → fondo rojo y texto blanco
     for i, m in enumerate(medidores_data, 1):
         if str(m['alteracion']).upper() == 'SI':
             tabla_style.append(('BACKGROUND', (5, i), (5, i), colors.red))
@@ -287,9 +277,8 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
     elementos.append(tabla)
     elementos.append(Spacer(1, 12))
 
-    # ── Sección 2: observaciones + fotos por medidor ──────────
+    # Sección 2: observaciones + fotos
     elementos.append(Paragraph("<b>2. OBSERVACIÓN DEL DESPIECE</b>", styles['Heading2']))
-
     for m in medidores_data:
         elementos.append(Spacer(1, 8))
         elementos.append(Paragraph(
@@ -321,25 +310,20 @@ def _build_pdf_elements(medidores_data, fecha_informe_str, fecha_despiece_str,
 
     elementos.append(Spacer(1, 20))
 
-    # ── Firma ─────────────────────────────────────────────────
+    # Firma
     firma_path = os.path.join(settings.MEDIA_ROOT, 'firma.png')
-    if os.path.exists(firma_path):
-        firma_tabla_data = [[Image(firma_path, width=100, height=50)]]
-    else:
-        firma_tabla_data = [['']]
-
+    firma_tabla_data = [[Image(firma_path, width=100, height=50)]] if os.path.exists(firma_path) else [['']]
     firma_tabla = Table(firma_tabla_data, colWidths=[500])
     firma_tabla.setStyle([('ALIGN', (0, 0), (0, 0), 'CENTER')])
     elementos.append(firma_tabla)
     elementos.append(Paragraph("<b>PAULA JULIA BLANCO H</b>", firma_style))
-    elementos.append(Paragraph(
-        "Líder CN Laboratorio de Calibración de Medidores", firma_style))
+    elementos.append(Paragraph("Líder CN Laboratorio de Calibración de Medidores", firma_style))
 
     return elementos
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 GENERAR INFORME PDF (desde BD — se mantiene)
+# 🔹 GENERAR INFORME PDF (desde BD)
 # ─────────────────────────────────────────────────────────────
 @login_required
 def generar_informe(request):
@@ -393,18 +377,10 @@ def generar_informe(request):
 
 
 # ─────────────────────────────────────────────────────────────
-# 🔹 FLUJO EXCEL: LEER → PREVISUALIZAR → PDF
+# 🔹 FLUJO EXCEL
 # ─────────────────────────────────────────────────────────────
 
 def _descargar_foto(url):
-    """
-    Descarga imagen desde URL de SharePoint y devuelve Image de ReportLab.
-    Si falla o la URL está vacía, devuelve "".
-
-    Para autenticación con SharePoint agrega:
-        headers = {'Authorization': 'Bearer TU_TOKEN'}
-        resp = requests.get(url.strip(), headers=headers, timeout=15)
-    """
     if not url or not url.strip().startswith('http'):
         return ""
     try:
@@ -420,25 +396,35 @@ def _descargar_foto(url):
     return ""
 
 
+def _normalizar(texto):
+    """Normaliza texto para comparación robusta de encabezados."""
+    import unicodedata
+    texto = str(texto).strip().upper()
+    texto = unicodedata.normalize('NFKD', texto)
+    texto = ''.join(c for c in texto if not unicodedata.combining(c))
+    return texto
+
+
 def _leer_excel(archivo):
-    """
-    Lee el Excel exportado de Microsoft Forms.
-    - Año: toma 'Año', si está vacío usa 'Año1'
-    - Fecha despiece: columna 'Hora de inicio'
-    - Fotos: una celda puede contener varias URLs separadas por ';'
-    - Alteración: columna 'MEDIDOR CON ALTERACIÓN'
-    Devuelve lista de dicts.
-    """
     wb = load_workbook(filename=archivo, read_only=True)
     ws = wb.active
 
-    encabezados = {}
+    # Mapear encabezados normalizados → índice
+    encabezados_raw = {}
+    encabezados_norm = {}
     for cell in next(ws.iter_rows(max_row=1, values_only=False)):
         if cell.value is not None:
-            encabezados[str(cell.value).strip()] = cell.column - 1
+            raw = str(cell.value).strip()
+            norm = _normalizar(raw)
+            encabezados_raw[raw] = cell.column - 1
+            encabezados_norm[norm] = cell.column - 1
 
     def idx(nombre):
-        return encabezados.get(nombre)
+        # Buscar primero exacto, luego normalizado
+        if nombre in encabezados_raw:
+            return encabezados_raw[nombre]
+        norm = _normalizar(nombre)
+        return encabezados_norm.get(norm)
 
     medidores = []
     for row in ws.iter_rows(min_row=2, values_only=True):
@@ -449,10 +435,8 @@ def _leer_excel(archivo):
             i = idx(nombre)
             return str(row[i]).strip() if i is not None and row[i] is not None else ''
 
-        # Año: preferir 'Año', sino 'Año1'
         anio = v('Año') or v('Año1')
 
-        # Fecha despiece desde 'Hora de inicio'
         i_hora = idx('Hora de inicio')
         fecha_despiece = ''
         if i_hora is not None and row[i_hora] is not None:
@@ -462,7 +446,6 @@ def _leer_excel(archivo):
             else:
                 fecha_despiece = str(val)[:10]
 
-        # Fotos: varias URLs posibles por celda separadas por ';'
         urls_fotos = []
         for campo in ['Registro fotográfico 1', 'Registro fotográfico 2',
                       'Registro fotográfico 3', 'Registro fotográfico 4']:
@@ -473,8 +456,8 @@ def _leer_excel(archivo):
                     if url:
                         urls_fotos.append(url)
 
-        # Alteración
-        alteracion = v('MEDIDOR CON ALTERACIÓN')
+        # Alteración — busca con y sin tilde, mayúsculas/minúsculas
+        alteracion = v('MEDIDOR CON ALTERACIÓN') or v('MEDIDOR CON ALTERACION') or 'NO'
 
         medidores.append({
             'serial':         v('Serial'),
@@ -493,12 +476,7 @@ def _leer_excel(archivo):
 
 @login_required
 def importar_excel(request):
-    """
-    GET  → formulario para subir el Excel.
-    POST → lee el Excel, guarda en sesión y redirige a previsualización.
-    """
     from django.contrib import messages
-
     if request.method == 'POST' and request.FILES.get('archivo_excel'):
         archivo = request.FILES['archivo_excel']
         try:
@@ -519,10 +497,6 @@ def importar_excel(request):
 
 @login_required
 def previsualizar_excel(request):
-    """
-    Muestra tabla con los registros del Excel.
-    El usuario selecciona cuáles incluir en el PDF.
-    """
     medidores = request.session.get('medidores_excel', [])
     if not medidores:
         return redirect('importar_excel')
@@ -531,10 +505,6 @@ def previsualizar_excel(request):
 
 @login_required
 def generar_pdf_excel(request):
-    """
-    Recibe índices seleccionados, descarga fotos desde SharePoint
-    y genera el PDF con el formato estándar del informe.
-    """
     if request.method != 'POST':
         return redirect('importar_excel')
 
@@ -549,7 +519,6 @@ def generar_pdf_excel(request):
 
     seleccionados = [todos[int(i)] for i in indices if int(i) < len(todos)]
 
-    # Fecha informe = hoy | Fecha despiece = del primer registro
     fecha_informe_str = date.today().strftime('%Y-%m-%d')
     fecha_despiece_str = seleccionados[0].get('fecha_despiece', '') if seleccionados else ''
 
