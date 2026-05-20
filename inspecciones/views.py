@@ -13,6 +13,7 @@ from PIL import Image as PILImage
 
 from .models import RegistroInspeccion, Medidor
 from .forms import RegistroForm, MedidorFormSet
+from .onedrive import subir_foto_onedrive
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Image
 from reportlab.lib import colors
@@ -59,8 +60,15 @@ def nuevo_registro(request):
         if form.is_valid() and formset.is_valid():
             registro = form.save()
             medidores = formset.save(commit=False)
-            for m in medidores:
+            for idx, m in enumerate(medidores):
                 m.registro = registro
+                for i in range(1, 5):
+                    campo = f'foto_{i}'
+                    archivo = request.FILES.get(f'medidores-{idx}-{campo}')
+                    if archivo:
+                        nombre = f"{registro.id}_{m.serial}_{campo}_{archivo.name}"
+                        url = subir_foto_onedrive(nombre, archivo.read())
+                        setattr(m, campo, url)
                 m.save()
             from django.contrib import messages
             messages.success(request, '✅ Registro guardado correctamente.')
@@ -86,8 +94,15 @@ def editar_registro(request, pk):
         if form.is_valid() and formset.is_valid():
             registro = form.save()
             medidores = formset.save(commit=False)
-            for m in medidores:
+            for idx, m in enumerate(medidores):
                 m.registro = registro
+                for i in range(1, 5):
+                    campo = f'foto_{i}'
+                    archivo = request.FILES.get(f'medidores-{idx}-{campo}')
+                    if archivo:
+                        nombre = f"{registro.id}_{m.serial}_{campo}_{archivo.name}"
+                        url = subir_foto_onedrive(nombre, archivo.read())
+                        setattr(m, campo, url)
                 m.save()
             for obj in formset.deleted_objects:
                 obj.delete()
@@ -344,10 +359,15 @@ def generar_informe(request):
     medidores_data = []
     for m in medidores:
         fotos = []
-        for foto in [m.foto_1, m.foto_2, m.foto_3, m.foto_4]:
-            if foto:
+        for foto_url in [m.foto_1, m.foto_2, m.foto_3, m.foto_4]:
+            if foto_url:
                 try:
-                    fotos.append(Image(foto.path, width=120, height=90))
+                    resp = requests.get(foto_url, timeout=15)
+                    img = PILImage.open(io.BytesIO(resp.content)).convert('RGB')
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG')
+                    buf.seek(0)
+                    fotos.append(Image(buf, width=120, height=90))
                 except Exception:
                     fotos.append("")
             else:
@@ -409,7 +429,6 @@ def _leer_excel(archivo):
     wb = load_workbook(filename=archivo, read_only=True)
     ws = wb.active
 
-    # Mapear encabezados normalizados → índice
     encabezados_raw = {}
     encabezados_norm = {}
     for cell in next(ws.iter_rows(max_row=1, values_only=False)):
@@ -420,7 +439,6 @@ def _leer_excel(archivo):
             encabezados_norm[norm] = cell.column - 1
 
     def idx(nombre):
-        # Buscar primero exacto, luego normalizado
         if nombre in encabezados_raw:
             return encabezados_raw[nombre]
         norm = _normalizar(nombre)
@@ -456,7 +474,6 @@ def _leer_excel(archivo):
                     if url:
                         urls_fotos.append(url)
 
-        # Alteración — busca con y sin tilde, mayúsculas/minúsculas
         alteracion = v('MEDIDOR CON ALTERACIÓN') or v('MEDIDOR CON ALTERACION') or 'NO'
 
         medidores.append({
