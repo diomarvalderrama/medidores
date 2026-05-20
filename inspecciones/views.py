@@ -408,16 +408,18 @@ def _descargar_foto(url):
         token = _get_token()
         headers = {'Authorization': 'Bearer ' + token} if token else {}
         resp = requests.get(url.strip(), headers=headers, timeout=15)
+        print(f"FOTO STATUS: {resp.status_code} URL: {url[:80]}")
         if resp.status_code == 200:
             img = PILImage.open(io.BytesIO(resp.content)).convert('RGB')
             buf = io.BytesIO()
             img.save(buf, format='JPEG')
             buf.seek(0)
             return Image(buf, width=120, height=90)
-    except Exception:
-        pass
+        else:
+            print(f"FOTO ERROR BODY: {resp.text[:200]}")
+    except Exception as e:
+        print(f"FOTO EXCEPTION: {e}")
     return ""
-
 
 def _normalizar(texto):
     """Normaliza texto para comparación robusta de encabezados."""
