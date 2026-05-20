@@ -44,10 +44,10 @@ class Medidor(models.Model):
 
     observaciones_encontradas = models.TextField()
 
-    foto_1 = models.ImageField(upload_to='medidores/', blank=True, null=True)
-    foto_2 = models.ImageField(upload_to='medidores/', blank=True, null=True)
-    foto_3 = models.ImageField(upload_to='medidores/', blank=True, null=True)
-    foto_4 = models.ImageField(upload_to='medidores/', blank=True, null=True)
+    foto_1 = models.URLField(blank=True, null=True)
+    foto_2 = models.URLField(blank=True, null=True)
+    foto_3 = models.URLField(blank=True, null=True)
+    foto_4 = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return self.serial
