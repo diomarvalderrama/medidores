@@ -404,7 +404,10 @@ def _descargar_foto(url):
     if not url or not url.strip().startswith('http'):
         return ""
     try:
-        resp = requests.get(url.strip(), timeout=15)
+        from .onedrive import _get_token
+        token = _get_token()
+        headers = {'Authorization': 'Bearer ' + token} if token else {}
+        resp = requests.get(url.strip(), headers=headers, timeout=15)
         if resp.status_code == 200:
             img = PILImage.open(io.BytesIO(resp.content)).convert('RGB')
             buf = io.BytesIO()
